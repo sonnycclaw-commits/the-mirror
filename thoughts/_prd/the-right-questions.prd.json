@@ -1,0 +1,777 @@
+{
+  "id": "MIRROR",
+  "name": "The Mirror - Momentum MVP",
+  "description": "AI-powered discovery interview that reflects your hidden patterns back to you, breaking static inertia and generating actionable Momentum Contracts.",
+  "version": "7.0",
+  "completion_promise": "MIRROR_MVP_COMPLETE",
+  "architecture_ref": "_prd/technical_architecture.md",
+  "tech_stack": {
+    "framework": "TanStack Start",
+    "runtime": "Bun",
+    "database": "Convex",
+    "auth": "Clerk (Full Stack: @clerk/tanstack-start)",
+    "ai": {
+      "core": "ai@^6.0.0",
+      "provider": "@ai-sdk/anthropic@^2.0.0",
+      "runtime": "Convex Actions (Vercel AI SDK)",
+      "streaming": "@convex-dev/persistent-text-streaming"
+    },
+    "state_machine": "Convex Database State (No XState)",
+    "hosting": "Vercel (Node.js Runtime)",
+    "ssr_strategy": "Hybrid (Landing/Contract=SSR, Chat=Client)"
+  },
+  "pattern_refs": [
+    "_prd/technical_architecture.md",
+    "_prd/system_soul.md",
+    "_prd/patterns/discovery-architecture.md",
+    "_prd/patterns/psychometric-profiling.md",
+    "_prd/patterns/ui-skill.md",
+    "_prd/patterns/clerk-full-stack-pattern.md",
+    "_prd/patterns/clerk-testing-patterns.md"
+  ],
+  "decision_refs": [
+    "_prd/decisions/DECISION-001-validated-extraction.md"
+  ],
+  "research_refs": [
+    "ideation/_deep_research/psychometric_frameworks.md",
+    "ideation/_deep_research/behaviour_change_science.md"
+  ],
+  "sprints": [
+    {
+      "id": "S0",
+      "name": "Foundation",
+      "goal": "Scaffold project, configure infra, install streaming component",
+      "stories": [
+        "S0-T01",
+        "S0-T02",
+        "S0-T03",
+        "S0-T04",
+        "S0-T05",
+        "S0-T06",
+        "S0-T07",
+        "S0-T08",
+        "S0-T09"
+      ]
+    },
+    {
+      "id": "S1",
+      "name": "Chat UI",
+      "goal": "Build production-grade chat components with streaming support",
+      "stories": [
+        "S1-T01",
+        "S1-T02",
+        "S1-T03",
+        "S1-T04",
+        "S1-T05",
+        "S1-T06",
+        "S1-T07",
+        "S1-T08",
+        "S1-T09",
+        "S1-T10"
+      ]
+    },
+    {
+      "id": "S2",
+      "goal": "Implement the 'Shadow Loop' (Extraction -> Think -> Speak)",
+      "stories": [
+        "S2-T01",
+        "S2-T02",
+        "S2-T03",
+        "S2-T04",
+        "S2-T05",
+        "S2-T06",
+        "S2-T07",
+        "S2-T10"
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "Phase Machine (Cognitive Loop)",
+      "goal": "Implement the 5-Phase Cognitive Process (Scan -> Check -> Voice)",
+      "stories": [
+        "S3-T01",
+        "S3-T02",
+        "S3-T03",
+        "S3-T06"
+      ]
+    },
+    {
+      "id": "S4",
+      "name": "Signals & Synthesis (Validated Taxonomy)",
+      "goal": "Implement extraction logic using validated psychological constructs (Schwartz Values, SDT Needs, Vaillant Defenses, Kegan Stages, Attachment Styles)",
+      "decision_ref": "decisions/DECISION-001-validated-extraction.md",
+      "stories": [
+        "S4-T01",
+        "S4-T02",
+        "S4-T03",
+        "S4-T04",
+        "S4-T05",
+        "S4-T06"
+      ]
+    },
+    {
+      "id": "S5",
+      "name": "Momentum Contract",
+      "goal": "Generate the Dan Koe/James Clear style identity contract with evidence back-linking",
+      "stories": [
+        "S5-T01",
+        "S5-T02",
+        "S5-T03"
+      ]
+    },
+    {
+      "id": "S6",
+      "name": "E2E & Production Hardening",
+      "goal": "Integration tests, error boundaries, performance, accessibility",
+      "stories": [
+        "S6-T01",
+        "S6-T02",
+        "S6-T03",
+        "S6-T04",
+        "S6-T05",
+        "S6-T06"
+      ]
+    },
+    {
+      "id": "S7",
+      "name": "Review & Debt",
+      "goal": "Comprehensive review of implementation, quality, performance, UI, UX, and user debt",
+      "stories": [
+        "S7-T01",
+        "S7-T02",
+        "S7-T03",
+        "S7-T04",
+        "S7-T05",
+        "S7-T06"
+      ]
+    },
+    {
+      "id": "S8",
+      "name": "Hardening",
+      "goal": "Production hardening: security, privacy, observability, and graceful failure handling",
+      "stories": [
+        "S8-T01",
+        "S8-T02",
+        "S8-T03",
+        "S8-T04"
+      ]
+    }
+  ],
+  "stories": [
+    {
+      "id": "S0-T01",
+      "name": "Initialize TanStack Start Project",
+      "action": "bunx create-tanstack-start the-mirror --template basic-react-query",
+      "validation": "bun run dev starts server on localhost:3000",
+      "completion_promise": "S0_T01_COMPLETE"
+    },
+    {
+      "id": "S0-T02",
+      "name": "Configure TypeScript Strict Mode",
+      "action": "Set tsconfig.json: strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true",
+      "validation": "bun run typecheck exits 0 with no warnings",
+      "completion_promise": "S0_T02_COMPLETE"
+    },
+    {
+      "id": "S0-T03",
+      "name": "Install Convex with Persistent Streaming",
+      "action": "bun add convex @convex-dev/persistent-text-streaming && bunx convex init",
+      "validation": "convex/_generated/ folder exists, streaming component registered in convex.config.ts",
+      "completion_promise": "S0_T03_COMPLETE",
+      "implementation_notes": "Register in defineApp().use(persistentTextStreaming). See vercel-ai-sdk-patterns.md section 3."
+    },
+    {
+      "id": "S0-T04",
+      "name": "Install Clerk (Full Stack)",
+      "action": "bun add @clerk/tanstack-start. Configure `clerkMiddleware()` in `src/entry-server.tsx` (requestMiddleware). Create 'convex' JWT template.",
+      "validation": "Server middleware intercepts unauth requests. JWT template exists.",
+      "completion_promise": "S0_T04_COMPLETE"
+    },
+    {
+      "id": "S0-T05",
+      "name": "Install Vercel AI SDK Stack",
+      "action": "bun add ai @ai-sdk/anthropic @ai-sdk-tools/artifacts zod xstate @xstate/react convex-helpers",
+      "validation": "All packages in package.json dependencies",
+      "completion_promise": "S0_T05_COMPLETE"
+    },
+    {
+      "id": "S0-T06",
+      "name": "Configure Environment Variables",
+      "action": "Create .env.local with ANTHROPIC_API_KEY, VITE_CONVEX_URL, VITE_CLERK_PUBLISHABLE_KEY",
+      "validation": "bunx convex dev can connect, Anthropic API key validated",
+      "completion_promise": "S0_T06_COMPLETE"
+    },
+    {
+      "id": "S0-T07",
+      "name": "Integrate Providers in __root.tsx",
+      "action": "Use `ConvexProviderWithClerk` (from `convex/react-clerk` or helpers) wrapping `<Outlet />`. Pass `useAuth`.",
+      "validation": "App renders, useConvexAuth() works, WebSocket connects with token.",
+      "completion_promise": "S0_T07_COMPLETE"
+    },
+    {
+      "id": "S0-T08",
+      "name": "Define Session Schema with Full State",
+      "action": "Create convex/schema.ts with sessions table",
+      "validation": "bunx convex push succeeds, schema has all required fields",
+      "completion_promise": "S0_T08_COMPLETE",
+      "implementation_notes": "Schema: { userId, currentPhase (enum), messages[], decisions[] (ADR format), signals[], profile, contract, streamId, createdAt, updatedAt }. See discovery-architecture.md section 7."
+    },
+    {
+      "id": "S0-T09",
+      "name": "Create Session Recovery Mechanism",
+      "action": "Create convex/queries/resumeSession.ts that reconstructs state from last checkpoint. Add checkpoint mutation every 3 turns.",
+      "validation": "Test: Kill dev server mid-stream, refresh, resume within 5 seconds at same point.",
+      "completion_promise": "S0_T09_COMPLETE",
+      "implementation_notes": "Pre-mortem Tiger T1: Streaming fragility. Add client heartbeat (10s timeout triggers recovery UI). See premortem.md.",
+      "premortem_ref": "T1"
+    },
+    {
+      "id": "S1-T01",
+      "name": "Create Landing Page with CTA",
+      "action": "Create src/routes/index.tsx with Hero, value prop, Start Discovery CTA",
+      "validation": "screen.getByRole('button', { name: /start discovery/i }) exists",
+      "completion_promise": "S1_T01_COMPLETE",
+      "ui_constraints": [
+        "MUST: CTA button min-h-[44px]",
+        "MUST: focus-visible:ring-2"
+      ]
+    },
+    {
+      "id": "S1-T02",
+      "name": "Create Protected Chat Route with Auth Guard",
+      "action": "Create src/routes/chat/_layout.tsx with `beforeLoad` check for `context.auth.userId`. Redirect to /sign-in if missing.",
+      "validation": "Unauthenticated access redirects instantly. Authenticated renders child routes.",
+      "completion_promise": "S1_T02_COMPLETE",
+      "implementation_notes": "Use TanStack Router's `beforeLoad`. Do NOT use global middleware."
+    },
+    {
+      "id": "S1-T11",
+      "name": "Define Public Contract Route (SSR)",
+      "action": "Create src/routes/contract.$id.tsx with `loader` that fetches Contract data from Convex for Meta Tags.",
+      "validation": "Curl request to /contract/123 shows <meta> tags with contract title.",
+      "completion_promise": "S1_T11_COMPLETE"
+    },
+    {
+      "id": "S1-T03",
+      "name": "Create MessageBubble Component",
+      "action": "Create src/components/chat/MessageBubble.tsx",
+      "validation": "Renders user/assistant styles, handles streaming text, break-words for long content",
+      "completion_promise": "S1_T03_COMPLETE",
+      "ui_constraints": [
+        "MUST: <article role='article'>",
+        "MUST: break-words max-w-[80%]",
+        "SHOULD: text-pretty"
+      ]
+    },
+    {
+      "id": "S1-T04",
+      "name": "Create QuestionCard Component",
+      "action": "Create src/components/discovery/QuestionCard.tsx. MUST follow `_prd/patterns/ui-skill.md` constraints (min-h-[44px], aria-live, focus rings).",
+      "validation": "Passes accessibility audit (keyboard nav + screen reader annouces selection)",
+      "completion_promise": "S1_T04_COMPLETE",
+      "ui_constraints": [
+        "MUST: Touch targets >= 44px",
+        "MUST: aria-live for selection feedback",
+        "MUST: Visible focus rings (focus-visible:ring-2 ring-offset-2)",
+        "MUST: <button> not <div onClick>",
+        "MUST: Enter/Space keyboard selection",
+        "MUST: Selected state visually distinct (border + bg)",
+        "NEVER: outline:none without replacement",
+        "NEVER: transition:all",
+        "SHOULD: motion/react entrance animation ≤200ms ease-out",
+        "SHOULD: motion-reduce: variant"
+      ],
+      "pattern_ref": "_prd/patterns/ui-skill.md"
+    },
+    {
+      "id": "S1-T05",
+      "name": "Create PhaseProgress Component",
+      "action": "Create src/components/discovery/PhaseProgress.tsx",
+      "validation": "Shows current phase, aria-current on active, tabular-nums, sr-only status text",
+      "completion_promise": "S1_T05_COMPLETE",
+      "ui_constraints": [
+        "MUST: <nav aria-label='Discovery Progress'>",
+        "MUST: <ol role='list'>",
+        "MUST: aria-current='step' on active",
+        "MUST: sr-only text for completed/current/upcoming",
+        "MUST: tabular-nums on numbers",
+        "SHOULD: Non-breaking space (&nbsp;)"
+      ]
+    },
+    {
+      "id": "S1-T06",
+      "name": "Create StreamingText Component",
+      "action": "Create src/components/chat/StreamingText.tsx using useTextStream hook",
+      "validation": "Displays streaming text from Convex, shows cursor during stream",
+      "completion_promise": "S1_T06_COMPLETE",
+      "implementation_notes": "Use useTextStream from @convex-dev/persistent-text-streaming/react. See vercel-ai-sdk-patterns.md section 3."
+    },
+    {
+      "id": "S1-T07",
+      "name": "Create MessageList Component with Virtualization",
+      "action": "Create src/components/chat/MessageList.tsx",
+      "validation": "Renders messages, auto-scrolls respecting reduced motion, overscroll-contain",
+      "completion_promise": "S1_T07_COMPLETE",
+      "ui_constraints": [
+        "MUST: overflow-y-auto with overscroll-contain",
+        "MUST: Auto-scroll respects prefers-reduced-motion",
+        "MUST: scroll-margin-top on targets",
+        "SHOULD: Virtualize if >50 messages"
+      ]
+    },
+    {
+      "id": "S1-T08",
+      "name": "Create TypingIndicator Component",
+      "action": "Create src/components/chat/TypingIndicator.tsx",
+      "validation": "data-testid='typing-indicator', animation pauses when off-screen",
+      "completion_promise": "S1_T08_COMPLETE",
+      "ui_constraints": [
+        "MUST: Pause animation when off-screen",
+        "MUST: Honor prefers-reduced-motion"
+      ]
+    },
+    {
+      "id": "S1-T09",
+      "name": "Create ErrorBoundary + ErrorFallback",
+      "action": "Create src/components/ErrorBoundary.tsx with retry capability",
+      "validation": "Catches errors, shows fallback, retry button restores state",
+      "completion_promise": "S1_T09_COMPLETE",
+      "ui_constraints": [
+        "MUST: No dead ends - offer next step/recovery"
+      ]
+    },
+    {
+      "id": "S1-T10",
+      "name": "Compose DiscoveryInterface",
+      "action": "Create src/components/discovery/DiscoveryInterface.tsx combining all components",
+      "validation": "Renders MessageList + streaming + QuestionCard (conditional) + PhaseProgress",
+      "completion_promise": "S1_T10_COMPLETE"
+    },
+    {
+      "id": "S2-T01",
+      "name": "Define askFollowUp Tool (No Execute)",
+      "action": "Create src/lib/ai/tools/ask-follow-up.ts",
+      "validation": "Schema parses question and intent, NO execute function (returns to UI)",
+      "completion_promise": "S2_T01_COMPLETE"
+    },
+    {
+      "id": "S2-T02",
+      "name": "Define extractSignal Tool (With Execute)",
+      "action": "Create src/lib/ai/tools/extract-signal.ts",
+      "validation": "Executes mutation 'internal.signals.add', returns 'Signal Recorded'",
+      "completion_promise": "S2_T02_COMPLETE"
+    },
+    {
+      "id": "S2-T03",
+      "name": "Define transitionPhase Tool (With Execute)",
+      "action": "Create src/lib/ai/tools/transition-phase.ts",
+      "validation": "Executes mutation 'internal.sessions.updatePhase'",
+      "completion_promise": "S2_T03_COMPLETE"
+    },
+    {
+      "id": "S2-T04",
+      "name": "Implement Shadow Loop Action (Convex)",
+      "action": "Create convex/actions/chat.ts with maxSteps: 5. Ensure extractSignal calls DB.",
+      "validation": "Test: Send message -> Tool Call -> DB Write -> Response. All in one stream.",
+      "completion_promise": "S2_T04_COMPLETE"
+    },
+    {
+      "id": "S2-T05",
+      "name": "Create Tools Registry",
+      "action": "Export all tools from src/lib/ai/tools/index.ts",
+      "validation": "All tools correctly exported",
+      "completion_promise": "S2_T05_COMPLETE"
+    },
+    {
+      "id": "S2-T06",
+      "name": "Create Convex Streaming Chat Action",
+      "action": "Create convex/actions/chat.ts with persistent streaming",
+      "validation": "Streams text response and handles tool calls",
+      "completion_promise": "S2_T06_COMPLETE"
+    },
+    {
+      "id": "S2-T07",
+      "name": "Implement Tool Result Submission",
+      "action": "Create action to handle tool results (e.g. user answers)",
+      "validation": "Conversation continues after tool result",
+      "completion_promise": "S2_T07_COMPLETE"
+    },
+    {
+      "id": "S2-T08",
+      "name": "Create useDiscovery Hook",
+      "action": "Create hook for chat state and actions",
+      "validation": "Exposes messages, isStreaming, handlers",
+      "completion_promise": "S2_T08_COMPLETE"
+    },
+    {
+      "id": "S2-T09",
+      "name": "Implement Error Handling & Retry Logic",
+      "action": "Add error boundaries, try/catch in actions, and exponential backoff for failed tool calls",
+      "validation": "Graceful error recovery: Chat continues even if a background tool fails.",
+      "completion_promise": "S2_T09_COMPLETE"
+    },
+    {
+      "id": "S2-T10",
+      "name": "Validate Tool Result Message Format",
+      "action": "Create test/tool-submission.test.ts with concrete message array examples. Log messages[] before generateText. Add validation: if response doesn't reference selection, retry with explicit context.",
+      "validation": "Unit test passes. Every QuestionCard selection results in LLM acknowledging the choice.",
+      "completion_promise": "S2_T10_COMPLETE",
+      "implementation_notes": "Pre-mortem Tiger T2: Tool result submission gap. See premortem.md.",
+      "premortem_ref": "T2"
+    },
+    {
+      "id": "S3-T01",
+      "name": "Implement 4-Phase Discovery Machine",
+      "action": "Create src/lib/discovery/phase-machine.ts with states: SCENARIOS, FOLLOW_UP, REFLECTION, CONTRACT",
+      "validation": "Machine transitions correctly. SCENARIOS -> FOLLOW_UP -> REFLECTION -> CONTRACT",
+      "completion_promise": "S3_T01_COMPLETE"
+    },
+    {
+      "id": "S3-T02",
+      "name": "Create System Prompt Builder & Context Window",
+      "action": "Implement 'Hierarchical Context' from discovery-architecture.md Sec 5. MUST include: specific 'Recent Phase Context' + 'Signal Summary' + 'Sliding Window' (last 10 messages only).",
+      "validation": "Prompt size stays stable (<10k tokens) even after 50 turns. Summary includes extracted signals.",
+      "completion_promise": "S3_T02_COMPLETE"
+    },
+    {
+      "id": "S3-T03",
+      "name": "Define askFollowUp Tool",
+      "action": "Create askFollowUp tool (no execute) for conversational probing",
+      "validation": "Tool returns structured question to UI without executing",
+      "completion_promise": "S3_T03_COMPLETE"
+    },
+    {
+      "id": "S3-T04",
+      "name": "Define transitionToScenario Tool",
+      "action": "Create tool to move XState machine to next scenario or Reflection",
+      "validation": "Execute updates session state and advances workflow",
+      "completion_promise": "S3_T04_COMPLETE"
+    },
+    {
+      "id": "S3-T05",
+      "name": "Implement Discovery Agent Loop (Tool Roundtrip)",
+      "action": "Update runDiscoveryStep to handle the 'Tool Result' cycle. When UI submits answer, append 'tool-result' message and re-run agent.",
+      "validation": "Agent correctly perceives user choice as a tool output, not just text.",
+      "completion_promise": "S3_T05_COMPLETE"
+    },
+    {
+      "id": "S3-T06",
+      "name": "Add Phase Transition Hard Triggers",
+      "action": "Add hard trigger: 'If > 12 signals extracted, MUST transition to SYNTHESIS'. Add UI indicator at signal > 10. Add user escape hatch button 'I'm ready for my contract'.",
+      "validation": "90% of sessions complete within 20 minutes. No session exceeds 25 minutes.",
+      "completion_promise": "S3_T06_COMPLETE",
+      "implementation_notes": "Pre-mortem Elephant E3: Phase transition confusion. See premortem.md.",
+      "premortem_ref": "E3"
+    },
+    {
+      "id": "S4-T01",
+      "name": "Define extractSignal Tool (Validated Schema)",
+      "action": "Create extractSignal tool using DECISION-001 validated taxonomy. Schema: domain (VALUE|NEED|MOTIVE|DEFENSE|ATTACHMENT|DEVELOPMENT|PATTERN) + type (construct-specific) + state (SATISFIED|FRUSTRATED for applicable domains). Clean break from old taxonomy.",
+      "validation": "Tool extracts signals with domain/type structure. Schwartz values (10), SDT needs (3×2 states), Vaillant defenses (8), Kegan stages (3), Attachment styles (4) all extractable.",
+      "completion_promise": "S4_T01_COMPLETE",
+      "schema_ref": "decisions/DECISION-001-validated-extraction.md#domain-specifications",
+      "domains": {
+        "VALUE": ["POWER", "ACHIEVEMENT", "HEDONISM", "STIMULATION", "SELF_DIRECTION", "UNIVERSALISM", "BENEVOLENCE", "TRADITION", "CONFORMITY", "SECURITY"],
+        "NEED": ["AUTONOMY", "COMPETENCE", "RELATEDNESS"],
+        "MOTIVE": ["ACHIEVEMENT", "POWER", "AFFILIATION"],
+        "DEFENSE": ["DENIAL", "PROJECTION", "DISPLACEMENT", "RATIONALIZATION", "INTELLECTUALIZATION", "SUBLIMATION", "HUMOR", "ANTICIPATION"],
+        "ATTACHMENT": ["SECURE", "ANXIOUS", "AVOIDANT", "DISORGANIZED"],
+        "DEVELOPMENT": ["SOCIALIZED", "SELF_AUTHORING", "SELF_TRANSFORMING"],
+        "PATTERN": "free_text"
+      }
+    },
+    {
+      "id": "S4-T02",
+      "name": "Implement Background Extraction Action",
+      "action": "Create Convex action to run extractSignal in parallel. Add domain-specific detection hints to prompt. MUST handle Race Condition: Synthesis waits for pending extractions.",
+      "validation": "Signals saved with domain/type. Phase transition blocked until critical extractions complete.",
+      "completion_promise": "S4_T02_COMPLETE"
+    },
+    {
+      "id": "S4-T03",
+      "name": "Schema: Memory Graph (Validated)",
+      "action": "Update Convex schema with validated signal structure: signals table has domain, type, state fields. Add indexes for domain-based queries. Update contradictions to link signals by domain.",
+      "validation": "Can query 'all VALUE signals', 'all NEED signals with state=FRUSTRATED', 'signals for scenario X by domain'",
+      "completion_promise": "S4_T03_COMPLETE"
+    },
+    {
+      "id": "S4-T04",
+      "name": "Define synthesizeProfile Tool (PsychometricProfile)",
+      "action": "Create synthesizeProfile tool that outputs PsychometricProfile structure: values (Schwartz top 3), needs (SDT assessment), dominantMotive (McClelland), defenses (with maturity level), attachmentMarkers, development (Kegan stage), patterns, contradictions, mirrorStatement.",
+      "validation": "Generates profile with all validated domains populated. mirrorStatement references specific constructs.",
+      "completion_promise": "S4_T04_COMPLETE",
+      "output_schema": {
+        "values": { "primary": "SchwartzValue[]", "secondary": "SchwartzValue[]" },
+        "needs": { "autonomy": "SDTState", "competence": "SDTState", "relatedness": "SDTState" },
+        "dominantMotive": "McClellandMotive",
+        "defenses": { "primary": "DefenseMechanism[]", "maturityLevel": "IMMATURE|NEUROTIC|MATURE" },
+        "attachmentMarkers": { "style": "AttachmentStyle", "confidence": "number" },
+        "development": { "stage": "KeganStage", "state": "STABLE|TRANSITIONING" },
+        "patterns": "Pattern[]",
+        "contradictions": "Contradiction[]",
+        "mirrorStatement": "string"
+      }
+    },
+    {
+      "id": "S4-T05",
+      "name": "Add Domain-Aware Density Monitoring",
+      "action": "Monitor extraction density by domain. Alert if missing domains (e.g., no NEED signals after 10 turns). Require minimum domain coverage before synthesis: at least VALUE + NEED + one of (DEFENSE|PATTERN). Add prompt injection for under-represented domains.",
+      "validation": "Average 2.5+ signals per scenario. Review 5 sessions for extraction-per-turn ratio.",
+      "completion_promise": "S4_T05_COMPLETE",
+      "implementation_notes": "Pre-mortem Elephant E2: Extraction density failure. See premortem.md.",
+      "premortem_ref": "E2"
+    },
+    {
+      "id": "S4-T06",
+      "name": "End-of-Phase Signal Confirmation",
+      "action": "At end of EXCAVATION phase, present top signals for user confirmation: 'I noticed you seem to value [ACHIEVEMENT] highly, but feel frustrated in your sense of [AUTONOMY]. Does that resonate?' Store confirmation status on signals. Adjust confidence based on user feedback.",
+      "validation": "User can confirm/reject/refine key signals. 80%+ confirmation rate on high-confidence signals.",
+      "completion_promise": "S4_T06_COMPLETE",
+      "ux_notes": "Keep lightweight - 2-3 key signals only. Not every signal. Frame as 'checking in' not 'validating'."
+    },
+    {
+      "id": "S5-T01",
+      "name": "Define outputContract Tool",
+      "action": "Create tool for Momentum Contract. Enforce max_length on fields.",
+      "validation": "Saves structured contract. Fields fit on mobile card (approx 140 chars per field).",
+      "completion_promise": "S5_T01_COMPLETE"
+    },
+    {
+      "id": "S5-T02",
+      "name": "Implement Contract Prompting Strategy",
+      "action": "Create synthesis prompt that requests specific evidence quotes",
+      "validation": "Generated contract cites user's own words",
+      "completion_promise": "S5_T02_COMPLETE"
+    },
+    {
+      "id": "S5-T03",
+      "name": "Build Contract UI Components",
+      "action": "Create React components for the Contract cards (Refusal, Becoming, etc.)",
+      "validation": "Renders beautiful, shareable contract view",
+      "completion_promise": "S5_T03_COMPLETE"
+    },
+    {
+      "id": "S6-T01",
+      "name": "E2E Test: Full Discovery Flow",
+      "action": "Create e2e/discovery.spec.ts with Playwright",
+      "completion_promise": "S6_T01_COMPLETE"
+    },
+    {
+      "id": "S4-T06",
+      "name": "Verify Signal Density",
+      "action": "Manual test: Ensure at least 3 signals extracted per scenario in a full run",
+      "validation": "Database contains rich signal graph after session",
+      "completion_promise": "S4_T06_COMPLETE",
+      "ui_constraints": [
+        "MUST: No visual signal bubbles (Tier 2 limit)"
+      ]
+    },
+    {
+      "id": "S6-T02",
+      "name": "E2E Test: AskUserQuestion Interaction",
+      "action": "Create e2e/question-flow.spec.ts",
+      "validation": "Test: QuestionCard renders → Click option → Selection submitted → Next question",
+      "completion_promise": "S6_T02_COMPLETE"
+    },
+    {
+      "id": "S6-T03",
+      "name": "E2E Test: Session Recovery",
+      "action": "Create e2e/session-recovery.spec.ts",
+      "validation": "Test: Complete 3 questions → Refresh → Resume from same point",
+      "completion_promise": "S6_T03_COMPLETE"
+    },
+    {
+      "id": "S6-T04",
+      "name": "Performance Audit",
+      "action": "Run Lighthouse audit on critical paths",
+      "validation": "Performance > 80, LCP < 2.5s, FID < 100ms",
+      "completion_promise": "S6_T04_COMPLETE"
+    },
+    {
+      "id": "S6-T05",
+      "name": "Accessibility Audit",
+      "action": "Run axe-core audit, fix all critical/serious issues",
+      "validation": "Accessibility > 90, no critical violations, keyboard navigation complete",
+      "completion_promise": "S6_T05_COMPLETE"
+    },
+    {
+      "id": "S6-T06",
+      "name": "Mobile Responsiveness Audit",
+      "action": "Test on mobile viewport (375px, 414px), ensure touch targets",
+      "validation": "All interactive elements ≥44px touch target, no horizontal scroll",
+      "completion_promise": "S6_T06_COMPLETE"
+    },
+    {
+      "id": "S7-T01",
+      "name": "Implementation Review",
+      "action": "Review all implemented features against PRD specs. Verify: tool definitions match schema, Convex actions handle errors, state machine transitions are correct, streaming integration works end-to-end.",
+      "validation": "Checklist completed: all stories S0-S5 implemented correctly, no missing functionality, code matches architectural decisions in pattern_refs",
+      "completion_promise": "S7_T01_COMPLETE",
+      "review_areas": [
+        "Tool definitions (askFollowUp, extractSignal, transitionPhase, outputContract)",
+        "Convex schema matches discovery-architecture.md",
+        "Shadow Loop action correctly chains Extract→Think→Speak",
+        "Phase machine transitions enforce hard triggers",
+        "Session recovery restores state within 5s"
+      ]
+    },
+    {
+      "id": "S7-T02",
+      "name": "Code Quality Review",
+      "action": "Audit code quality: TypeScript strict compliance, no any types, consistent error handling, proper logging, test coverage >80% on critical paths.",
+      "validation": "ESLint passes, TypeScript strict mode clean, Convex functions have proper error boundaries, critical paths have unit tests",
+      "completion_promise": "S7_T02_COMPLETE",
+      "review_areas": [
+        "TypeScript: no 'any', no 'as' casts without validation",
+        "Error handling: all async operations have try/catch",
+        "Logging: AI actions log inputs/outputs for debugging",
+        "Test coverage: tool execution, phase transitions, contract generation",
+        "Code organization: follows patterns in pattern_refs"
+      ]
+    },
+    {
+      "id": "S7-T03",
+      "name": "Performance Review",
+      "action": "Profile and optimize: initial load <2s, streaming latency <500ms to first token, no memory leaks in chat, Convex queries indexed.",
+      "validation": "Lighthouse Performance >80, LCP <2.5s, no jank during streaming, 50+ message sessions stay responsive",
+      "completion_promise": "S7_T03_COMPLETE",
+      "review_areas": [
+        "Bundle size: main chunk <200KB gzipped",
+        "Streaming: first token <500ms, smooth cursor animation",
+        "Memory: no leaks on long sessions (30+ minutes)",
+        "Convex: queries use indexes, no full table scans",
+        "Re-renders: MessageList doesn't re-render all messages on new message"
+      ]
+    },
+    {
+      "id": "S7-T04",
+      "name": "UI Review",
+      "action": "Audit all UI components against ui-skill.md constraints: touch targets, focus rings, ARIA attributes, motion preferences, responsive breakpoints.",
+      "validation": "All MUST constraints from ui-skill.md satisfied, visual consistency across components, dark mode ready (if applicable)",
+      "completion_promise": "S7_T04_COMPLETE",
+      "review_areas": [
+        "Touch targets: all interactive elements ≥44px",
+        "Focus: visible focus-visible:ring-2 on all focusable elements",
+        "ARIA: proper roles, labels, live regions",
+        "Motion: animations <200ms, respect prefers-reduced-motion",
+        "Responsive: works on 375px-1920px viewports",
+        "Consistency: spacing, typography, color usage"
+      ]
+    },
+    {
+      "id": "S7-T05",
+      "name": "User Debt Review",
+      "action": "Identify shortcuts taken during MVP that affect user value: missing features, incomplete flows, hard-coded limits, unclear error states.",
+      "validation": "Debt items documented with severity (critical/medium/low) and estimated effort to resolve",
+      "completion_promise": "S7_T05_COMPLETE",
+      "review_areas": [
+        "Incomplete features: signal visualization (noted as Tier 2 limit)",
+        "Hard limits: 12 signal threshold, 25 min session cap",
+        "Missing flows: edit contract, re-run discovery, export options",
+        "Error states: what happens on AI failure, network drop, rate limit?",
+        "Onboarding: is first-time user experience clear?",
+        "Data: can users see/delete their data?"
+      ]
+    },
+    {
+      "id": "S7-T06",
+      "name": "UX Review",
+      "action": "Evaluate end-to-end user journey: cognitive load, friction points, emotional arc, trust building, value delivery timing.",
+      "validation": "5 user sessions observed, friction log created, improvements prioritized for next iteration",
+      "completion_promise": "S7_T06_COMPLETE",
+      "review_areas": [
+        "Cognitive load: is the question flow overwhelming?",
+        "Pacing: does AI wait appropriately, or rush?",
+        "Trust: does the user feel heard before receiving insights?",
+        "Value timing: when does the 'aha moment' occur?",
+        "Friction: where do users hesitate, backtrack, or abandon?",
+        "Emotional arc: does it feel like a journey with a satisfying conclusion?",
+        "Contract impact: do users feel the contract reflects them accurately?"
+      ]
+    },
+    {
+      "id": "S8-T01",
+      "name": "Security Hardening",
+      "action": "Audit and harden authentication, authorization, and data protection. Implement rate limiting, input validation, and secure API patterns.",
+      "validation": "Security checklist passed, no OWASP Top 10 vulnerabilities, Clerk config reviewed, rate limits in place",
+      "completion_promise": "S8_T01_COMPLETE",
+      "hardening_areas": [
+        "Auth: Clerk JWT validation on all Convex mutations, session expiry handling",
+        "Authorization: users can only access their own sessions/contracts",
+        "API keys: ANTHROPIC_API_KEY never exposed to client, Convex action-only",
+        "Rate limiting: per-user limits on chat actions (prevent abuse/cost explosion)",
+        "Input validation: sanitize all user input before AI processing",
+        "XSS: no dangerouslySetInnerHTML, markdown rendering is safe",
+        "CSRF: Convex handles this, but verify Clerk token flow",
+        "Session hijacking: secure cookie settings, token rotation"
+      ]
+    },
+    {
+      "id": "S8-T02",
+      "name": "Privacy & Data Hardening",
+      "action": "Implement data protection, retention policies, and user data rights. Ensure PII handling meets privacy standards.",
+      "validation": "Privacy policy drafted, data deletion flow works, retention limits enforced, no unnecessary PII stored",
+      "completion_promise": "S8_T02_COMPLETE",
+      "hardening_areas": [
+        "PII inventory: what personal data is stored in signals/sessions/contracts?",
+        "Data minimization: don't store raw chat if signals suffice",
+        "Retention: auto-delete sessions older than X days (configurable)",
+        "User rights: 'delete my data' button that removes all user data",
+        "Export: user can download their contract and signals",
+        "AI disclosure: clear notice that AI processes their responses",
+        "Third parties: document what goes to Anthropic, what stays in Convex",
+        "Encryption: data at rest (Convex handles), data in transit (HTTPS)"
+      ]
+    },
+    {
+      "id": "S8-T03",
+      "name": "Observability Hardening",
+      "action": "Implement logging, monitoring, error tracking, and debugging infrastructure for production operations.",
+      "validation": "Error tracking live, AI calls logged, alerts configured, can debug production issues",
+      "completion_promise": "S8_T03_COMPLETE",
+      "hardening_areas": [
+        "Error tracking: Sentry or similar for client + Convex errors",
+        "AI logging: log prompts, token usage, latency (redact PII)",
+        "Session debugging: can reconstruct what happened in a failed session",
+        "Metrics: track completion rate, avg session length, contract generation success",
+        "Alerts: notify on error spike, AI failures, unusual usage patterns",
+        "Health checks: endpoint for uptime monitoring",
+        "Cost tracking: monitor Anthropic API spend per user/day"
+      ]
+    },
+    {
+      "id": "S8-T04",
+      "name": "Edge Case Hardening",
+      "action": "Handle failure modes gracefully: network issues, API failures, rate limits, concurrent sessions, browser compatibility.",
+      "validation": "All failure scenarios tested, graceful degradation works, no dead ends for users",
+      "completion_promise": "S8_T04_COMPLETE",
+      "hardening_areas": [
+        "Network drop: mid-stream disconnect resumes cleanly (S0-T09 premortem T1)",
+        "Anthropic failures: retry with backoff, fallback message if repeated failure",
+        "Rate limits: queue requests, show 'thinking' state, don't lose user input",
+        "Convex offline: detect and show reconnecting state",
+        "Concurrent sessions: same user in multiple tabs handled gracefully",
+        "Browser compat: works in Safari, Firefox, Chrome (test streaming)",
+        "Token limits: handle long conversations approaching context limit",
+        "Timeout: what happens if AI takes >30s? Show progress, allow cancel"
+      ]
+    }
+  ],
+  "ralph_success_criteria": {
+    "story_complete": "Story passes its validation criteria",
+    "story_promise": "Output <promise>STORY_ID_COMPLETE</promise>",
+    "sprint_complete": "All stories in sprint complete",
+    "sprint_promise": "Output <promise>SX_COMPLETE</promise>",
+    "mvp_complete": "User can: complete full discovery → generate contract → export",
+    "mvp_promise": "Output <promise>MIRROR_MVP_COMPLETE</promise>",
+    "stuck_threshold": "After 3 iterations on same story without progress",
+    "stuck_promise": "Output <promise>STUCK_NEEDS_HELP</promise>"
+  },
+  "critical_path": [
+    "S0-T03 (Convex + Streaming)",
+    "S0-T08 (Session/Signal Schema)",
+    "S2-T02 (extractSignal)",
+    "S2-T04 (Shadow Loop Action)",
+    "S5-T03 (Contract UI)"
+  ]
+}

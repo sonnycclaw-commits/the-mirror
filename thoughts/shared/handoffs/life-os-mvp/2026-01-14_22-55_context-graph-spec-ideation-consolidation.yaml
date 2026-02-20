@@ -1,0 +1,119 @@
+---
+session: life-os-mvp
+date: 2026-01-14
+status: complete
+outcome: SUCCEEDED
+---
+
+goal: Created Context Graph Technical Specification - the unified moat architecture synthesizing 173k words of scattered ideation
+now: Decide which ideation documents to take forward vs archive - too many files, need consolidation
+
+test: "ls thoughts/ideation/architecture/context-graph-spec.md && ls thoughts/ideation/CHALLENGES.md && ls thoughts/ideation/KISS-PLAN.md"
+
+done_this_session:
+  - task: Ran scout agent to explore ideation directory (173k words, 49 files)
+    files: [opc/.claude/cache/agents/scout/ideation-landscape-20260114-220207.md]
+
+  - task: Updated README.md and SYNTHESIS.md with comprehensive landscape view
+    files: [thoughts/ideation/README.md, thoughts/ideation/SYNTHESIS.md]
+
+  - task: Ran 3 parallel agents for adversarial review (premortem, JTBD, critic)
+    files: [thoughts/ideation/CHALLENGES.md]
+
+  - task: Created KISS validation plan with Day 0 MVP scope
+    files: [thoughts/ideation/KISS-PLAN.md, thoughts/shared/plans/day0-mvp-plan.md]
+
+  - task: Developed Context Graph conceptual model (the actual moat)
+    files: [thoughts/ideation/visual/context-graph-model.md]
+
+  - task: Ran 3 parallel agents to build unified spec (extraction, research, schema design)
+    files: [thoughts/ideation/architecture/context-graph-spec.md, thoughts/shared/plans/context-graph-schema-plan.md]
+
+blockers: []
+
+questions:
+  - Which ideation docs are authoritative vs superseded?
+  - Should AI-patterns/ folder be deleted (wrong project - Renoz CRM)?
+  - Is 7-day excavation still the plan or pivot to Day 1 MVP?
+
+decisions:
+  - context_graph_is_moat: "ChatGPT has memory (flat). Context Graph has understanding (structured behavioral accumulation). This is the actual differentiation."
+  - synthesis_not_invention: "The Context Graph unifies existing components (Neo4j schema, state vectors, decay math, Bayesian updates) - they were scattered across docs, now unified."
+  - three_implementation_options: "Option A (Airtable, 1 day) → Option B (PostgreSQL, 2 weeks) → Option C (Neo4j, 12 weeks). Start with A for validation."
+  - half_life_decay: "Different edge types decay at different rates: identity (180 days), patterns (30 days), momentary (1 day)."
+  - hybrid_prediction: "Rule-based + Bayesian + Granger causality for detecting 'X leads to Y' patterns."
+
+findings:
+  - original_moat_is_smoke: "Living profile is not differentiated - ChatGPT already has conversational memory. Structured behavioral accumulation is the real moat."
+  - five_fatal_risks: "7-Day Cliff (HIGH), No Unit Economics (HIGH), Walk Doesn't Exist (HIGH), ChatGPT Encroachment (MEDIUM), Anti-Vision Retraumatizes (HIGH)"
+  - zero_user_validation: "173k words of ideation, zero user interviews cited, no willingness-to-pay testing, no demand signals"
+  - context_graph_was_already_designed: "Neo4j schema, temporal KG, decay math, state vectors - all existed in separate docs. This session unified them."
+
+worked:
+  - Parallel agent execution for adversarial review (3 agents simultaneously)
+  - Scout agent for initial landscape exploration
+  - Architect agent for schema design with 3 progressive options
+  - Oracle agent for external research (Graphiti, Granger causality, stickiness formulas)
+
+failed: []
+
+next:
+  - CRITICAL - Decide which ideation documents to keep vs archive
+  - Consolidate to 5-7 authoritative documents maximum
+  - Run user validation (Day 0 MVP or 2-week validation sprint)
+  - Build Airtable prototype (Option A) to test Context Graph capture
+
+files:
+  created:
+    - thoughts/ideation/CHALLENGES.md
+    - thoughts/ideation/KISS-PLAN.md
+    - thoughts/ideation/visual/context-graph-model.md
+    - thoughts/ideation/architecture/context-graph-spec.md
+    - thoughts/shared/plans/day0-mvp-plan.md
+    - thoughts/shared/plans/context-graph-schema-plan.md
+  modified:
+    - thoughts/ideation/README.md
+    - thoughts/ideation/SYNTHESIS.md
+
+context_graph_importance: |
+  The Context Graph Technical Specification (architecture/context-graph-spec.md) is the MOST IMPORTANT output of this session.
+
+  It answers: "What makes this sticky when ChatGPT exists?"
+
+  Answer: Not the conversation (ChatGPT can do that). The structured accumulation of:
+  - STATED vs BEHAVIORAL delta (said vs did)
+  - TEMPORAL patterns (when they succeed/fail)
+  - RELATIONAL mapping (who helps/hinders)
+  - PREDICTIONS that ChatGPT cannot make
+
+  The spec unifies 5 previously scattered components:
+  1. Neo4j property graph (from technical_architecture.md)
+  2. Temporal Knowledge Graph (from technical_architecture.md)
+  3. Behavioral signal layer (from life-os-unified-architecture.md)
+  4. Psychometric belief state (from technical_architecture.md)
+  5. State vector tracking (from discovery-session-2026-01-14.md)
+
+  Implementation path: Airtable (validate) → PostgreSQL (V1) → Neo4j (scale)
+
+document_consolidation_needed: |
+  Current state: 49 files, 173k words - too many to maintain.
+
+  AUTHORITATIVE (keep):
+  - README.md (entry point)
+  - SYNTHESIS.md (decision tracker)
+  - CHALLENGES.md (critical review)
+  - KISS-PLAN.md (validation path)
+  - architecture/context-graph-spec.md (THE SPEC)
+  - visual/context-graph-model.md (conceptual model)
+  - vision/life-os-pitch.md (product vision)
+
+  REFERENCE (archive or merge):
+  - _deep_research/ (8 files, 797KB) - valuable research, but decisions extracted to SYNTHESIS
+  - architecture/ (12 files) - consolidate into context-graph-spec.md
+  - research/ (7 files) - findings extracted
+  - content/ (2 files) - question bank, keep for implementation
+
+  DELETE:
+  - AI-patterns/ (11 files) - WRONG PROJECT (Renoz CRM architecture)
+
+  Next session should make these consolidation decisions.

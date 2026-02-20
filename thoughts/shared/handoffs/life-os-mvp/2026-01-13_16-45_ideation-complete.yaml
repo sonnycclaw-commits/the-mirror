@@ -1,0 +1,204 @@
+session_id: life-os-ideation-complete
+timestamp: 2026-01-13T16:45:00Z
+status: complete
+outcome: SUCCEEDED
+
+context:
+  previous_handoff: 2026-01-13_14-38_discovery-research-complete.yaml
+  session_type: ideation-refinement
+  duration: ~2 hours
+
+summary: |
+  Comprehensive ideation session that took the app from discovery/research
+  through to complete architectural clarity. Ran 20 questions exercise to
+  crystallize strategic direction, defined the skill tree system, and
+  consolidated all prior research into actionable specifications.
+
+  The product is now ready for MVP development.
+
+key_decisions:
+  strategic_direction:
+    - Core value: "Living profile + pathway navigation system"
+    - Target user: Lost seekers + self-optimizers
+    - Business model: Freemium (profile free, journey paid)
+    - Exit strategy: Acquisition (Dan Koe partnership or major player)
+    - Timeline: MVP in 6-8 weeks
+
+  product_philosophy:
+    - AI role: Mirror + Companion (reflects back, walks alongside)
+    - Breakthrough moment: "Holy shit, that's ME" (feeling understood)
+    - Pathway visualization: CORE differentiator (must have MVP)
+    - Gamification: Light touch + skill trees (not XP/leaderboards)
+    - Sharing: Core feature for virality
+
+  skill_tree:
+    - Emergent skills (detected from conversation, not predefined)
+    - 6 domains: Self-Awareness, Emotional, Cognitive, Behavioral, Relational, Directional
+    - 36 total skills (15-20 for MVP)
+    - 5 levels per skill (Unaware → Mastered)
+    - Skyrim/PoE inspiration but less intimidating
+    - Skills unlock through journey milestones
+
+  freemium_split:
+    free_tier:
+      - Primary SDT driver identified
+      - 2-3 patterns detected
+      - One key tension surfaced
+      - Profile visualization
+      - Skill PREVIEW (teaser only)
+      - Shareable card
+    paid_tier:
+      - Full developmental stage
+      - Detailed blocker analysis
+      - Defense mechanisms
+      - Complete skill tree
+      - Skill development
+      - Personalized journey
+
+  red_lines:
+    - NOT therapy replacement
+    - NOT generic wellness app
+    - Must handle legal/liability properly
+
+documents_created:
+  architecture:
+    - path: thoughts/ideation/architecture/life-os-unified-architecture.md
+      purpose: Definitive technical/product architecture
+
+    - path: thoughts/ideation/architecture/edge-cases-risk-analysis.md
+      purpose: Risk identification and mitigation strategies
+
+    - path: thoughts/ideation/architecture/possibility-space-brainstorm.md
+      purpose: Full feature possibility space (divergent thinking)
+
+    - path: thoughts/ideation/architecture/scope-prioritization.md
+      purpose: What's IN vs OUT, release roadmap
+
+    - path: thoughts/ideation/architecture/pathway-visualization-system.md
+      purpose: Node map / ReactFlow design specification
+
+    - path: thoughts/ideation/architecture/strategic-direction.md
+      purpose: Strategic options and 20 questions results
+
+    - path: thoughts/ideation/architecture/skill-tree-design.md
+      purpose: Emergent skill system design
+
+  deep_research_referenced:
+    - path: thoughts/ideation/_deep_research/7-day-trial.md
+      purpose: Trial architecture, freemium split, prompts
+
+    - path: thoughts/ideation/_deep_research/visual_design_architecture.md
+      purpose: Complete design system (colors, typography, animation)
+
+    - path: thoughts/ideation/_deep_research/visual_design_research.md
+      purpose: Research on high-trust UI/UX
+
+tech_stack:
+  confirmed:
+    - Frontend: Expo (React Native)
+    - Backend: Convex
+    - AI: Claude API (structured outputs)
+    - Auth: Clerk
+    - Payments: Stripe
+    - Notifications: Expo Push + JITAI logic
+
+  pathway_visualization:
+    mvp: Simplified list/vertical view
+    v1.1: react-native-svg or WebView + ReactFlow
+    v2.0: Full ReactFlow for web/tablet
+
+mvp_scope:
+  must_have:
+    - Living profile (Bayesian, evolves through conversation)
+    - Pathway visualization (node map - CORE differentiator)
+    - "Unfuck Your Life" journey (Dan Koe framework)
+    - Skill tree (15-20 skills, list view)
+    - Shareable progress cards
+    - Free profile, paid journey
+    - Crisis detection
+
+  not_building:
+    - Multiple journeys (only Unfuck Your Life for MVP)
+    - Full graph visualization (list only)
+    - CBT/DBT protocols
+    - Community features
+    - Voice input
+    - B2B features
+
+success_metrics:
+  north_star: "This is me" moment achievement rate (>80% of Day 7 users)
+  conversion: Trial → paid >25%
+  engagement: Daily return rate >50% first week
+  pride_metric: "People say it changed their life"
+
+next_steps:
+  immediate:
+    - Create MVP implementation plan (sprint breakdown)
+    - Scaffold Expo + Convex project
+    - Build Day 1 conversation flow
+    - Implement basic profile schema
+
+  soon:
+    - Design pathway visualization component
+    - Build extraction agent (signal detection)
+    - Create prompt library (structured format)
+    - Implement skill detection basics
+
+  before_beta:
+    - Crisis detection system
+    - Stripe integration
+    - Push notification system
+    - Legal review of positioning
+
+open_questions:
+  - App name (not "Life OS" or "Unfuck Your Life" - needs new name)
+  - Pricing ($15? $20? $25/month)
+  - iOS-first or both platforms?
+  - How to recruit 50-100 beta users?
+  - Skyrim-style skill tree visualization complexity for MVP
+
+skill_tree_inspiration:
+  games_referenced:
+    - Skyrim (constellation skill trees)
+    - Path of Exile (sprawling interconnected web)
+    - Diablo (class-based trees)
+  adaptation_notes: |
+    User wants the "epic unlocking power" feel but toned down for wellness.
+    Less intimidating, more organic growth. Constellation aesthetic could
+    work well - skills as stars, connections as lines, domains as
+    constellations. The "night sky of your growth."
+
+user_preferences_from_20q:
+  breakthrough_moment: "Holy shit, that's ME"
+  ai_role: Mirror + Companion
+  core_value: Understanding foundation, pathway is differentiator
+  target_user: Lost seeker + self-optimizer
+  business_model: Freemium
+  gamification: Light touch + skill trees
+  profile_use: Connect to others, recommend content
+  timeline: MVP 6-8 weeks
+  red_lines: NOT therapy, NOT generic wellness
+  success_metric: Conversion + daily engagement
+  ai_persona: Warm but neutral (celebrity voices future premium)
+  five_year_vision: Acquired by major player
+  energy: AI/prompt engineering
+  dan_koe: Inspiration, potential partnership/sale target
+  risk_concerns: Technical execution + legal/liability
+  pathway_viz: CORE differentiator
+  social: Core feature (virality)
+  free_vs_paid: Profile free, journey paid
+  pride: People say it changed their life
+
+resume_context: |
+  This session completed the ideation phase. All major architectural
+  decisions have been made, the skill tree system is designed, and the
+  freemium split is clear. The product vision is crystallized:
+
+  "A living profile + pathway navigation system that helps lost seekers
+  understand themselves (free) and transform their lives (paid)."
+
+  The pathway visualization is the CORE differentiator and must be in MVP.
+  Skills emerge from conversation and unlock through journey milestones.
+
+  Next session should focus on MVP implementation - scaffolding the project
+  and building the first flows.

@@ -1,0 +1,173 @@
+date: 2026-01-15
+type: onboard
+status: active
+
+goal: |
+  Sprint to define STARS mechanics from concept documents using /stars skill.
+  Working through the seven-lens methodology (SKELETON → BLOOD → NERVES → SKIN → MIRROR → TRIBE → SCRIPTURE)
+  to develop game systems with video-game-level rigor.
+
+now: |
+  Continue STARS mechanics development. The constellation-states system is COMPLETE (all 6 lenses).
+  Next systems to develop based on dependency graph:
+  - brightness-decay (depends on constellation-states)
+  - phase-transitions (depends on constellation-states)
+  - connection-formation (depends on constellation-states)
+
+  Use `/stars` to see status and get recommendations for next system.
+
+tech_stack:
+  language: Python 3.12+
+  backend: PostgreSQL + pgvector (via asyncpg)
+  hooks: TypeScript (compiled to JS in .claude/hooks/dist/)
+  infrastructure: Agentica SDK for multi-agent orchestration
+  memory: PostgreSQL archival_memory table with BGE embeddings
+  tools:
+    - tldr CLI for code analysis
+    - uv for Python package management
+    - MCP tools for integration
+  key_dependencies:
+    - symbolica-agentica: Multi-agent framework
+    - sentence-transformers: Local embeddings (BGE)
+    - asyncpg: PostgreSQL async driver
+    - fastapi: API framework
+    - psycopg2-binary: PostgreSQL sync driver
+
+key_files:
+  # OPC Infrastructure
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc/pyproject.toml
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc/scripts/core/recall_learnings.py
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc/scripts/core/store_learning.py
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc/scripts/core/db/memory_service_pg.py
+
+  # TypeScript Hooks
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/.claude/hooks/src/session-start-continuity.ts
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/.claude/hooks/src/handoff-index.ts
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/.claude/hooks/src/memory-awareness.ts
+
+  # STARS Skills (in global .claude)
+  - /Users/joelchan/.claude/skills/stars/stars.md
+  - /Users/joelchan/.claude/skills/stars/stars-skeleton.md
+  - /Users/joelchan/.claude/skills/stars/stars-blood.md
+  - /Users/joelchan/.claude/skills/stars/stars-nerves.md
+  - /Users/joelchan/.claude/skills/stars/stars-skin.md
+  - /Users/joelchan/.claude/skills/stars/stars-mirror.md
+  - /Users/joelchan/.claude/skills/stars/stars-tribe.md
+  - /Users/joelchan/.claude/skills/stars/stars-scripture.md
+
+  # STARS Concept Documents
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/thoughts/concept/mechanics/README.md
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/thoughts/concept/mechanics/CHEATSHEET.md
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/thoughts/concept/mechanics/systems/constellation-states/06-scripture.md
+
+  # Project Context
+  - /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/CLAUDE.md
+
+architecture: |
+  The OPC (Orchestrated Parallel Claude) project provides infrastructure for the "Unfuck Your Life"
+  application, which gamifies life transformation using Dan Koe's identity-first framework.
+
+  **Core Components:**
+
+  1. **Memory System (PostgreSQL)**
+     - archival_memory table with session learnings
+     - 1024-dim BGE embeddings for semantic search
+     - Hybrid RRF search (text + vector)
+     - Tools: recall_learnings.py, store_learning.py
+
+  2. **TypeScript Hooks**
+     - Session lifecycle management
+     - Continuity via YAML handoffs
+     - Memory awareness (auto-recalls relevant learnings)
+     - Compiled to .claude/hooks/dist/
+
+  3. **Agentica Multi-Agent Framework**
+     - Parallel agent orchestration
+     - Cross-session coordination
+     - MCP tool integration
+
+  4. **STARS Game Mechanics**
+     - Seven-lens development methodology
+     - Systems: constellation-states (COMPLETE), brightness-decay, phase-transitions, etc.
+     - Artifacts in thoughts/concept/mechanics/
+
+  **Data Flow:**
+  - User interaction → Claude → TypeScript hooks → PostgreSQL memory
+  - STARS /skills → Seven lens artifacts → Simulations → Scripture (bible)
+  - Learnings stored with embeddings for future recall
+
+current_sprint:
+  focus: STARS mechanics development
+  methodology: Seven lenses (SKELETON → BLOOD → NERVES → SKIN → MIRROR → TRIBE → SCRIPTURE)
+
+  completed:
+    - constellation-states: All 6 lenses complete (SKELETON, BLOOD, NERVES, SKIN, MIRROR, SCRIPTURE)
+      - State machine with 6 states (NASCENT, FLICKERING, DIM, BRIGHT, DARK, DORMANT)
+      - Brightness formulas with proportional decay
+      - Research-backed constants (Lally 2010, Gottman, SDT)
+      - Edge cases and validation
+      - Simulation verified all scenarios
+
+  next_systems:
+    priority_1_critical:
+      - brightness-decay: How stars brighten/dim over time
+      - experiment-selection: Algorithm for picking experiments
+    priority_2_high:
+      - phase-transitions: When constellation changes phase
+      - connection-formation: How stars become connected
+
+  tools:
+    - /stars: Show all systems status and recommend next
+    - /stars <system>: Work on specific system
+    - /stars:skeleton: Formalize structure
+    - /stars:blood: Design formulas
+    - /stars:nerves: Research justifications
+    - /stars:skin: Define edge cases
+    - /stars:mirror: Test with simulations
+    - /stars:tribe: Compatibility mechanics
+    - /stars:scripture: Document to bible
+
+next: |
+  1. Run `/stars` to see current systems status
+  2. Choose next system (recommendation: brightness-decay or experiment-selection)
+  3. Work through lenses systematically
+  4. Each lens produces an artifact in thoughts/concept/mechanics/systems/<system>/
+  5. Final SCRIPTURE lens creates the canonical bible entry
+
+  **Key Principles:**
+  - Structure before numbers (SKELETON has no math)
+  - Every number has a reason (NERVES justifies BLOOD)
+  - Feel beats theory (MIRROR can override formulas)
+  - Insight, not judgment (compatibility shows dynamics)
+
+constraints:
+  - Follow seven-lens methodology strictly
+  - Every formula needs research justification
+  - All systems must be validated via simulation
+  - Dependencies must be respected (see dependency graph in README.md)
+  - Artifacts go to thoughts/concept/mechanics/systems/<system>/
+
+open_questions:
+  - Which system to tackle next after constellation-states?
+  - Should we develop brightness-decay or experiment-selection first?
+  - How to handle compatibility layer (multi-person interactions)?
+
+key_decisions:
+  - Constellation States system complete with all formulas validated
+  - Brightness range: 0.05 (soft floor) to 1.0
+  - Decay formula: Proportional with maintenance zone protection
+  - State transitions require 7-day stabilization
+  - Half-lives vary by domain (Health: 7d, Relationships: 14d, etc.)
+
+working_set:
+  current_context: STARS mechanics sprint
+  active_documents:
+    - thoughts/concept/mechanics/README.md (systems index)
+    - thoughts/concept/mechanics/CHEATSHEET.md (quick reference)
+    - thoughts/concept/mechanics/systems/constellation-states/ (completed system)
+
+  commands:
+    dev: cd /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc && uv run <script>
+    recall: cd /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc && PYTHONPATH=. uv run python scripts/core/recall_learnings.py --query "<query>"
+    store: cd /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/opc && PYTHONPATH=. uv run python scripts/core/store_learning.py --session-id "<id>" --type <TYPE> --content "<content>" --context "<context>" --tags "<tags>"
+    hooks: cd /Users/joelchan/Documents/Coding/App-Dev/live/unfuck-your-life/Continuous-Claude-v3/.claude/hooks && npm run build

@@ -1,0 +1,122 @@
+---
+session: life-os-mvp
+date: 2026-01-13
+status: complete
+outcome: SUCCEEDED
+---
+
+goal: "Life OS discovery & research phase - market analysis, tech stack selection, skill tree architecture"
+now: "Begin MVP implementation - scaffold Expo app with Convex backend"
+test: "Review thoughts/ideation/architecture/research-synthesis.md for complete findings"
+
+context: |
+  Life OS is a gamified life transformation app based on Dan Koe's "Unfuck Your Life" framework.
+  Core mechanic: Daily micro-sessions → AI builds psychometric profile → Skill tree emerges → Personalized pathways
+  Positioning: "Spotify Wrapped for your psychology" + "Duolingo for self-discovery"
+  Target: Digital natives who've tried and abandoned self-development apps
+  North star metric: Assessment accuracy ("This is me" moment in first 7 days)
+
+done_this_session:
+  - task: Created CLAUDE.md with Dan Koe framework gamification model
+    files: [CLAUDE.md]
+  - task: Ran 20-question discovery interview defining product scope
+    files: [thoughts/ideation/experiments/discovery-interview-findings.md]
+  - task: Parallel research on opportunity space, Convex, structured outputs, skill emergence
+    files: [thoughts/ideation/research/opportunity-space.md, thoughts/ideation/research/convex-research.md, thoughts/ideation/research/structured-outputs.md, thoughts/ideation/research/skill-emergence.md]
+  - task: Synthesized tech architecture with agent contracts
+    files: [thoughts/ideation/architecture/technical-architecture.md]
+  - task: Defined 8-week MVP plan with 7-day free experience
+    files: [thoughts/ideation/architecture/mvp-plan.md]
+  - task: Reviewed user's independent deep research (5 comprehensive docs)
+    files: [thoughts/ideation/_deep_research/]
+  - task: Created research synthesis comparing agent vs deep research
+    files: [thoughts/ideation/architecture/research-synthesis.md]
+
+blockers: []
+
+questions:
+  - Journey length for paid tier (30-day sprints vs 90-day vs ongoing)?
+  - Which HEXACO assessment library to use for conversational extraction?
+  - How to handle users at different ego development stages in same app?
+
+decisions:
+  - convex_over_supabase: "Real-time native, AI Agent component built-in, vector search included"
+  - hexaco_over_big5: "Honesty-Humility dimension aligns with character development focus"
+  - mobile_first: "Pattern interrupts need push notifications - phones always in pocket"
+  - minimal_gamification: "Focus on insight/accuracy, not XP/badges - avoid gamification pitfalls"
+  - bayesian_profiling: "Confidence-weighted belief updates from conversation signals"
+  - emergent_skills: "AI discovers skills from conversation, not predefined taxonomy"
+  - jitai_notifications: "Just-in-time adaptive interventions for right message at right time"
+
+findings:
+  - market_gap: "No app combines deep personality understanding + continuous tracking + game mechanics + AI personalization (~$70B TAM)"
+  - retention_crisis: "90% quit habit apps in 30 days - need strong 'This is me' moment"
+  - moat_is_time: "Skill tree becomes irreplaceable after 6 months - switching cost approaches infinity"
+  - ego_stages_critical: "9 Loevinger/Cook-Greuter stages require different prompts per stage"
+  - unfuck_pathway: "3-phase journey: Excavation (Week 1) → Calibration (Month 1) → Evolution (Month 3+)"
+
+worked:
+  - "Parallel oracle agents for research (4 simultaneous) - fast comprehensive coverage"
+  - "User discovery interview before research - focused the questions"
+  - "Comparing agent research vs independent deep research - found critical JITAI gap"
+
+failed:
+  - "WebFetch on X.com - needed WebSearch instead for tweet content"
+
+tech_stack:
+  mobile: "React Native + Expo"
+  backend: "Convex"
+  ai: "Claude API with structured outputs"
+  auth: "Clerk"
+  payments: "Stripe"
+  notifications: "JITAI system with EMA data"
+
+mvp_phases:
+  sprint_1: "Foundation + Day 1 experience (weeks 1-2)"
+  sprint_2: "Days 2-6 + profile building (weeks 3-4)"
+  sprint_3: "Day 7 + visualization + paywall (weeks 5-6)"
+  sprint_4: "Polish + beta launch (weeks 7-8)"
+
+seven_day_free:
+  day_1: "First Impression - initial personality card hook"
+  day_2: "Anti-Vision - surface fears"
+  day_3: "Vision - surface desires"
+  day_4: "Patterns - self-sabotage detection"
+  day_5: "Strengths - natural abilities"
+  day_6: "Blockers - what's holding back"
+  day_7: "Full Reveal - 'This is me' + shareable card + paywall"
+
+next:
+  - "Scaffold Expo project with Convex integration"
+  - "Implement Convex schema from technical-architecture.md"
+  - "Design Day 1 onboarding flow with anti-vision prompts"
+  - "Build JITAI notification system for pattern interrupts"
+  - "Create shareable 'Spotify Wrapped' style card for Day 7"
+
+files:
+  created:
+    - CLAUDE.md
+    - thoughts/ideation/README.md
+    - thoughts/ideation/vision/life-os-pitch.md
+    - thoughts/ideation/architecture/thought-experiments.md
+    - thoughts/ideation/architecture/technical-architecture.md
+    - thoughts/ideation/architecture/mvp-plan.md
+    - thoughts/ideation/architecture/research-synthesis.md
+    - thoughts/ideation/research/opportunity-space.md
+    - thoughts/ideation/research/convex-research.md
+    - thoughts/ideation/research/structured-outputs.md
+    - thoughts/ideation/research/skill-emergence.md
+    - thoughts/ideation/research/deep-research-prompt.md
+    - thoughts/ideation/experiments/discovery-interview-findings.md
+  reviewed:
+    - thoughts/ideation/_deep_research/psychometric_frameworks.md
+    - thoughts/ideation/_deep_research/competitive_landscape.md
+    - thoughts/ideation/_deep_research/behaviour_change_science.md
+    - thoughts/ideation/_deep_research/technical_architecture.md
+    - thoughts/ideation/_deep_research/unfuck_your_life.md
+
+key_documents:
+  definitive_source: "thoughts/ideation/architecture/research-synthesis.md"
+  user_journey: "thoughts/ideation/_deep_research/unfuck_your_life.md"
+  tech_architecture: "thoughts/ideation/architecture/technical-architecture.md"
+  mvp_scope: "thoughts/ideation/architecture/mvp-plan.md"

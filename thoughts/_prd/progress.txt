@@ -1,0 +1,207 @@
+# The Mirror - Progress (v7.5)
+
+## Sprint 0: Foundation (9 stories) ✅
+- [x] S0-T01: Initialize TanStack Start Project ✓
+- [x] S0-T02: Configure TypeScript Strict Mode ✓
+- [x] S0-T03: Install Convex with Persistent Streaming ✓
+- [x] S0-T04: Install Clerk (Full Stack) + JWT Template ✓
+- [x] S0-T05: Install Vercel AI SDK Stack ✓
+- [x] S0-T06: Configure Environment Variables ✓
+- [x] S0-T07: Integrate Providers (`ConvexProviderWithClerk`) ✓
+- [x] S0-T08: Define Session Schema with Full State ✓
+- [ ] S0-T09: Create Session Recovery Mechanism 🐅 TIGER (defer to S3)
+
+## Sprint 1: Chat UI (10 stories) ✅
+- [x] S1-T01: Create Landing Page with CTA ✓
+- [x] S1-T02: Create Protected Chat Route (DEV BYPASS) ✓
+- [x] S1-T03: Create MessageBubble Component ✓
+- [x] S1-T04: Create QuestionCard Component ★ ✓
+- [x] S1-T05: Create PhaseProgress Component ✓
+- [x] S1-T06: Create StreamingText Component ★ ✓
+- [x] S1-T07: Create MessageList Component ✓
+- [x] S1-T08: Create TypingIndicator Component ✓
+- [x] S1-T09: Create ErrorBoundary + ErrorFallback ✓
+- [x] S1-T10: Compose DiscoveryInterface ✓
+
+## Sprint 2: The Shadow Loop (10 stories) ✅
+- [x] S2-T01: Define `askFollowUp` Tool (No Execute) ★ ✓
+- [x] S2-T02: Define `extractSignal` Tool (With Execute) ★ ✓
+- [x] S2-T03: Define `transitionPhase` Tool (With Execute) ✓
+- [x] S2-T04: Implement Shadow Loop Action (Convex) ★ ✓
+- [x] S2-T05: Create Tools Registry ✓
+- [x] S2-T06: Create Convex Streaming Chat Action ✓
+- [x] S2-T07: Implement Tool Result Submission ★ ✓ (via useDiscovery)
+- [x] S2-T08: Create useDiscovery Hook ✓
+- [x] S2-T09: Implement Error Handling & Retry Logic ✓ (in hook)
+- [ ] S2-T10: Validate Tool Result Message Format 🐅 TIGER (defer)
+
+## Sprint 3: Phase Machine (5 stories) ✅
+- [x] S3-T01: Implement 4-Phase Discovery Machine ★ ✓
+- [x] S3-T02: Create System Prompt Builder & Context Window ★ ✓
+- [x] S3-T03: Define askFollowUp Tool ✓ (already done in S2-T01)
+- [ ] S3-T05: Implement Discovery Agent Loop (Tool Roundtrip) (done in S2)
+- [x] S3-T06: Add Phase Transition Hard Triggers ✓
+
+## Sprint 4: Signals & Synthesis (5 stories) ✅
+- [x] S4-T01: Define extractSignal Tool (Enhanced w/ Psychometric Types) ★ ✓
+- [x] S4-T02: Implement Background Extraction Action ★ ✓
+- [x] S4-T03: Schema: Memory Graph (signals, contradictions, evidence links) ✓
+- [x] S4-T04: Define synthesizeProfile Tool ★ ✓
+- [x] S4-T05: Add Extraction Density Monitoring ✓ (Pre-mortem E2 fix)
+
+## Sprint 5: Momentum Contract (3 stories) ✅
+- [x] S5-T01: Define outputContract Tool (Enhanced w/ evidence, limits) ★ ✓
+- [x] S5-T02: Implement Contract Prompting Strategy ✓
+- [x] S5-T03: Build Contract UI Components ★ ✓
+
+## Sprint 6: E2E + Hardening ✅
+- [x] S6-T01: E2E Test - Full Discovery Flow ✓
+- [x] S6-T02: E2E Test - AskUserQuestion Interaction ✓
+- [x] S6-T03: E2E Test - Session Recovery ✓
+- [x] S6-T04: Performance Audit ✓
+- [x] S6-T05: Accessibility Audit (axe-core) ✓
+- [x] S6-T06: Mobile Responsiveness Audit ✓
+
+---
+
+## Summary
+- **Total Stories**: 61 (48 MVP + 6 S7 Review + 4 S8 Hardening + 3 deferred)
+- **Completed**: 56 (Sprint 0-8)
+- **Remaining**: 2 (TIGER items deferred from S0/S2)
+
+## Current Status
+**MIRROR_MVP_COMPLETE** ✅
+
+## Sprint 7: Review & Debt ✅
+- [x] S7-T01: Implementation Review ✓
+- [x] S7-T02: Code Quality Review ✓ (40 TS errors documented)
+- [x] S7-T03: Performance Review ✓ (targets documented)
+- [x] S7-T04: UI Review ✓ (all constraints pass)
+- [x] S7-T05: User Debt Review ✓ (8 items logged)
+- [x] S7-T06: UX Review ✓ (5 concerns documented)
+
+## Sprint 8: Hardening ✅
+- [x] S8-T01: Security Hardening ✓ (convex/security.ts)
+- [x] S8-T02: Privacy & Data Hardening ✓ (convex/privacy.ts)
+- [x] S8-T03: Observability Hardening ✓ (src/lib/observability.ts)
+- [x] S8-T04: Edge Case Hardening ✓ (src/lib/resilience.ts)
+
+## Key Files Created (Sprint 7 & 8)
+
+### Review Documentation
+- `docs/S7-review-findings.md` - Comprehensive review findings for all S7 tasks
+
+### Security (S8-T01)
+- `convex/security.ts` - Rate limiting, input sanitization, session ownership validation
+
+### Privacy (S8-T02)
+- `convex/privacy.ts` - User data export, deletion (GDPR), retention policies
+
+### Observability (S8-T03)
+- `src/lib/observability.ts` - Structured logging, AI call tracking, session metrics, health checks
+
+### Resilience (S8-T04)
+- `src/lib/resilience.ts` - Retry with backoff, timeout handling, network detection, fallback messages
+
+### S8 Integration (Application Wiring)
+- `convex/discovery.ts` - Security checks (ownership verification, input sanitization), observability logging
+- `src/lib/use-discovery.ts` - Resilience (retry logic, network detection, session recovery state)
+- `src/routes/chat/index.tsx` - Error fallback UI (offline banner, enhanced error states)
+
+## Key Files Created (Sprint 6)
+
+### E2E Tests (`e2e/`)
+- `discovery.spec.ts` - Full discovery flow tests (landing → discovery → contract)
+- `question-flow.spec.ts` - QuestionCard interaction tests (rendering, selection, keyboard nav)
+- `session-recovery.spec.ts` - Session persistence tests (refresh, phase continuity)
+- `performance.spec.ts` - Performance audit (FCP, CLS, bundle size, interaction timing)
+- `accessibility.spec.ts` - Accessibility audit (axe-core WCAG 2.1 AA, keyboard, screen reader)
+- `mobile.spec.ts` - Mobile responsiveness (touch targets, viewports, orientation, safe areas)
+
+### Configuration
+- `playwright.config.ts` - Playwright E2E test configuration (chromium, firefox, webkit, mobile)
+
+### Routes
+- `src/routes/discovery.tsx` - Semantic discovery route (mirrors /chat)
+
+### Component Updates (data-testid)
+- `QuestionCard.tsx` - Added question-card, question-text, question-option testids
+- `PhaseProgress.tsx` - Added phase-progress, phase-item testids with data-phase, data-active
+- `MessageBubble.tsx` - Added message-bubble testid with data-role
+- `TypingIndicator.tsx` - Updated to loading-indicator testid
+
+## Key Files Created (Sprint 5)
+
+### Enhanced Tools (`src/lib/ai/tools/`)
+- `output-contract.ts` - Enhanced with max_length limits, evidence grounding, primaryContradiction
+
+### Prompting (`src/lib/discovery/`)
+- `prompt-builder.ts` - Enhanced SYNTHESIS and CONTRACT phase prompts with evidence requirements
+
+### Contract UI (`src/components/contract/`)
+- `ContractCard.tsx` - Glass morphism cards with spring animations
+- `EvidenceList.tsx` - User quote display with signal type badges
+- `ContractView.tsx` - Complete contract view with sign/share flow
+- `index.ts` - Module exports
+
+### Convex Backend
+- `convex/schema.ts` - Enhanced contracts table with evidence fields
+- `convex/contracts.ts` - Updated mutations with evidence support
+
+## Key Files Created (Sprint 4)
+
+### Enhanced Tools (`src/lib/ai/tools/`)
+- `extract-signal.ts` - Enhanced with psychometric types (8 types, subtypes, emotional context, SDT)
+- `synthesize-profile.ts` - Profile synthesis with patterns, anti-patterns, contradictions
+
+### Discovery Module (`src/lib/discovery/`)
+- `density-monitor.ts` - Extraction density monitoring & alerts
+
+### Convex Backend
+- `convex/extraction.ts` - Background extraction with race condition handling
+- `convex/memoryGraph.ts` - Scenarios, contradictions, evidence links
+- `convex/profiles.ts` - Synthesized profile storage
+- `convex/schema.ts` - Enhanced signals table, extractionJobs, scenarios, contradictions, evidenceLinks, profiles
+
+## Key Files Created (Sprint 3)
+
+### Discovery Module (`src/lib/discovery/`)
+- `phase-machine.ts` - 4-phase state machine with transition rules & hard triggers
+- `prompt-builder.ts` - Hierarchical context management (sliding window, signal summary)
+- `index.ts` - Module exports
+
+### Updated Files
+- `convex/discovery.ts` - Integrated phase machine and prompt builder
+- `convex/sessions.ts` - Added incrementTurn, incrementScenarios mutations
+- `convex/schema.ts` - Added turnsInPhase, totalTurns, scenariosExplored fields
+
+## Key Files Created (Sprint 2)
+
+### Tools (`src/lib/ai/tools/`)
+- `ask-follow-up.ts` - NO_EXECUTE question tool
+- `extract-signal.ts` - Signal extraction with Convex save
+- `transition-phase.ts` - Phase transition tool
+- `output-contract.ts` - Contract generation
+- `index.ts` - Tools registry
+
+### Convex Mutations
+- `convex/sessions.ts` - Session CRUD
+- `convex/messages.ts` - Message history
+- `convex/signals.ts` - Extracted signals
+- `convex/contracts.ts` - Momentum contracts
+- `convex/discovery.ts` - Main Shadow Loop action
+
+### Hooks
+- `src/lib/use-discovery.ts` - React hook for discovery flow
+
+## Architecture
+```
+User → DiscoveryInterface → useDiscovery hook → Convex action
+                                                      ↓
+                                               Claude + Tools
+                                                      ↓
+                                               askFollowUp (UI)
+                                               extractSignal (Convex)
+                                               transitionPhase (Convex)
+                                               outputContract (Convex)
+```
