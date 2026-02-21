@@ -549,8 +549,9 @@ document.getElementById('btn-again').onclick = () => {
 document.getElementById('btn-share').onclick = () => {
   const pattern = document.getElementById('profile-pattern').textContent
   const tags = Array.from(document.querySelectorAll('.tag')).map(t => t.textContent).join(' · ')
-  const choices = state.choices.map((c, i) => (i+1) + '. ' + c.choice).join('\n')
-  const text = 'THE MIRROR — SIGNAL PROFILE\n\n' + pattern + '\n' + tags + '\n\nCOMMAND LOG:\n' + choices + '\n\nthemirror.app'
+  const nl = String.fromCharCode(10)
+  const choices = state.choices.map((c, i) => (i+1) + '. ' + c.choice).join(nl)
+  const text = 'THE MIRROR — SIGNAL PROFILE' + nl + nl + pattern + nl + tags + nl + nl + 'COMMAND LOG:' + nl + choices + nl + nl + 'themirror.app'
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('btn-share')
     const orig = btn.textContent
