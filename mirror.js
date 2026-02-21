@@ -219,6 +219,93 @@ body {
   transition: color 0.2s;
 }
 .mirror-close:hover { color: #546070; }
+
+/* Profile card */
+.profile-card {
+  display: none;
+  border: 1px solid #131b28;
+  padding: 2rem;
+  margin-top: 3rem;
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+.profile-card.visible { opacity: 1; }
+.profile-label {
+  color: #1a2030;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.profile-pattern {
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  color: #d4a843;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+.profile-description {
+  font-size: 0.8rem;
+  color: #546070;
+  line-height: 1.7;
+  margin-bottom: 1.75rem;
+}
+.profile-record {
+  margin-bottom: 1.75rem;
+}
+.record-label {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  color: #1a2030;
+  letter-spacing: 0.3em;
+  margin-bottom: 0.75rem;
+}
+.record-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #0d1420;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #3a4a5a;
+  line-height: 1.5;
+}
+.record-item:last-child { border-bottom: none; }
+.record-n { color: #1e2d40; min-width: 14px; }
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.tag {
+  font-family: 'Courier New', monospace;
+  font-size: 0.65rem;
+  color: #2a3d52;
+  border: 1px solid #131b28;
+  padding: 0.25rem 0.6rem;
+  letter-spacing: 0.08em;
+}
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+}
+.action-btn {
+  background: transparent;
+  border: 1px solid #1e2d40;
+  color: #546070;
+  padding: 0.75rem 1.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+  flex: 1;
+}
+.action-btn:hover { border-color: #d4a843; color: #d4a843; }
+.action-btn.primary { border-color: #d4a843; color: #d4a843; }
 </style>
 </head>
 <body>
@@ -238,7 +325,23 @@ body {
   <div id="mirror-phase" class="mirror-wrap">
     <div class="mirror-label">THE MIRROR</div>
     <div id="mirror-text" class="mirror-text"></div>
-    <div class="mirror-close" id="mirror-close">— end of session —</div>
+    <div class="mirror-close" id="mirror-close" style="display:none">— end of session —</div>
+
+    <!-- Profile card — appears after reflection -->
+    <div class="profile-card" id="profile-card">
+      <div class="profile-label">SIGNAL PROFILE</div>
+      <div class="profile-pattern" id="profile-pattern"></div>
+      <div class="profile-description" id="profile-description"></div>
+      <div class="profile-record">
+        <div class="record-label">COMMAND LOG</div>
+        <div id="profile-choices"></div>
+      </div>
+      <div class="profile-tags" id="profile-tags"></div>
+      <div class="profile-actions">
+        <button class="action-btn primary" id="btn-again">RUN AGAIN →</button>
+        <button class="action-btn" id="btn-share">COPY PROFILE</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -365,25 +468,92 @@ async function showMirror() {
   const mirrorEl = document.getElementById('mirror-text')
   mirrorEl.textContent = ''
   
-  // Fetch the mirror
+  // Fetch mirror + profile in parallel
   try {
-    const res = await fetch('/mirror', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ choices: state.choices })
-    })
-    const d = await res.json()
+    const [mirrorRes, profileRes] = await Promise.all([
+      fetch('/mirror', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ choices: state.choices })
+      }),
+      fetch('/profile', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ choices: state.choices, logs: state.logs })
+      })
+    ])
+    
+    const mirrorData = await mirrorRes.json()
+    const profileData = await profileRes.json()
     
     // Short pause before the mirror speaks
     await new Promise(r => setTimeout(r, 1200))
-    typeText(mirrorEl, d.reflection, 22)
+    
+    // Type reflection, then reveal profile card
+    typeText(mirrorEl, mirrorData.reflection, 22, () => {
+      showProfileCard(profileData)
+    })
   } catch(e) {
     mirrorEl.textContent = 'Something is still loading. Try again in a moment.'
   }
 }
 
-document.getElementById('mirror-close').onclick = () => {
-  document.querySelector('.container').innerHTML = '<div style="text-align:center;padding:4rem 0;color:#1a2030;font-family:Courier New,monospace;font-size:0.75rem;letter-spacing:0.15em">END OF SESSION</div>'
+function showProfileCard(data) {
+  const card = document.getElementById('profile-card')
+  
+  // Pattern name + description
+  document.getElementById('profile-pattern').textContent = data.pattern || 'PATTERN UNRESOLVED'
+  document.getElementById('profile-description').textContent = data.description || ''
+  
+  // Command log — the 5 choices
+  const choicesEl = document.getElementById('profile-choices')
+  state.choices.forEach((c, i) => {
+    const item = document.createElement('div')
+    item.className = 'record-item'
+    item.innerHTML = '<span class="record-n">0' + (i+1) + '</span><span>' + c.choice + '</span>'
+    choicesEl.appendChild(item)
+  })
+  
+  // Signal tags
+  const tagsEl = document.getElementById('profile-tags')
+  ;(data.tags || []).forEach(tag => {
+    const el = document.createElement('div')
+    el.className = 'tag'
+    el.textContent = tag
+    tagsEl.appendChild(el)
+  })
+  
+  // Show with fade
+  card.style.display = 'block'
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      card.classList.add('visible')
+    })
+  })
+}
+
+document.getElementById('btn-again').onclick = () => {
+  state = { scene: 0, choices: [], logs: [], phase: 'idle' }
+  document.getElementById('mirror-phase').style.display = 'none'
+  document.getElementById('profile-card').style.display = 'none'
+  document.getElementById('profile-card').classList.remove('visible')
+  document.getElementById('profile-choices').innerHTML = ''
+  document.getElementById('profile-tags').innerHTML = ''
+  document.getElementById('game-phase').style.display = 'block'
+  renderScene()
+}
+
+document.getElementById('btn-share').onclick = () => {
+  const pattern = document.getElementById('profile-pattern').textContent
+  const tags = Array.from(document.querySelectorAll('.tag')).map(t => t.textContent).join(' · ')
+  const choices = state.choices.map((c, i) => (i+1) + '. ' + c.choice).join('\n')
+  const text = 'THE MIRROR — SIGNAL PROFILE\n\n' + pattern + '\n' + tags + '\n\nCOMMAND LOG:\n' + choices + '\n\nthemirror.app'
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-share')
+    const orig = btn.textContent
+    btn.textContent = 'COPIED'
+    setTimeout(() => btn.textContent = orig, 2000)
+  })
 }
 
 // Keyboard shortcuts
@@ -436,6 +606,41 @@ Write ONE log entry that names what this choice reveals about the person making 
     } catch(e) {
       res.writeHead(500)
       res.end(JSON.stringify({ log: 'SHIP LOG — Entry recorded.' }))
+    }
+    return
+  }
+
+  // Profile — pattern name, description, tags
+  if (req.url === '/profile' && req.method === 'POST') {
+    const { choices, logs } = await body()
+    const choiceList = choices.map((c, i) => `${i+1}. ${c.choice}`).join('\n')
+    const logList = (logs || []).map((l, i) => `${i+1}. ${l}`).join('\n')
+    try {
+      const raw = await ai(
+        `You have observed someone make five choices. Generate their signal profile.
+
+Their choices:
+${choiceList}
+
+Ship log entries:
+${logList}
+
+Return ONLY valid JSON (no markdown, no code block):
+{
+  "pattern": "2-4 word pattern name in ALL CAPS (e.g. CONTROLLED WITHDRAWAL, DELAYED AUTHORITY)",
+  "description": "One sentence. What this pattern costs them. Specific, not general.",
+  "tags": ["3 to 5 short signal tags", "each 1-3 words", "in ALL CAPS"]
+}`,
+        200
+      )
+      // Strip any markdown fences if model adds them
+      const clean = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
+      const profile = JSON.parse(clean)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(profile))
+    } catch(e) {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ pattern: 'PATTERN UNRESOLVED', description: '', tags: [] }))
     }
     return
   }
