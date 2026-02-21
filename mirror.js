@@ -4,7 +4,8 @@
  */
 import http from 'http'
 
-const KEY = process.env.OPENROUTER_API_KEY || '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'
+const KEY = process.env.OPENROUTER_API_KEY
+if (!KEY) throw new Error('OPENROUTER_API_KEY environment variable is required')
 
 async function ai(prompt, max = 250) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
