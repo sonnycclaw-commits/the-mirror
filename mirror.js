@@ -1,6 +1,6 @@
 /**
  * The Mirror — ISV Kestrel
- * S4 COMPLETE: World canon, naval voice, side log panel, skip, world-aware AI
+ * S5: Signal scoring (4 axes), expanded world, 6 mirror variants, hidden door
  */
 import http from 'http'
 
@@ -9,20 +9,143 @@ if (!KEY) throw new Error('OPENROUTER_API_KEY environment variable is required')
 
 const PORT = parseInt(process.env.PORT || '3003', 10)
 
-// ── WORLD BIBLE ──
-const WORLD = `ISV KESTREL: Modified Laconia-class medium freighter. 22 years in service. Independent registry, Ceres Station. Runs the Callum-Meridian corridor — dry goods, medical supplies, contract cargo. Current voyage: 14th run.
+// ─────────────────────────────────────────────
+// WORLD BIBLE — expanded
+// ─────────────────────────────────────────────
+const WORLD = `ISV KESTREL: Modified Laconia-class medium freighter, hull designation KS-7714. 22 years in service. Independent registry, Ceres Station. Runs the Callum-Meridian corridor — dry goods, medical supplies, contract cargo. Current voyage: 14th run under this captain. The ship is old enough to have opinions.
 
 CREW:
-- Mara Okafor (XO): Former MCRN Lieutenant. Resigned her commission after the Ganymede incident. Joined Kestrel 5 years ago. Decisive. Loyal once she decides you're worth it.
-- Emmet Dekker (Chief Engineer): Belt-born, Ceres. Nine ships in twenty years. Has been Kestrel's engineer longer than she's had her current captain. Knows every sound this ship makes.
-- Yuna Cho (Navigator): Earth-born. Precise. Does everything by protocol. Untested under pressure until this voyage.
-- Tomas Rhen (Cargo Ops): Mid-belt. Practical. Has seen enough in cargo holds to stop being surprised by what people carry.
+- Mara Okafor (XO): Former MCRN Lieutenant, 3rd Fleet. Resigned her commission eighteen months after the Ganymede incident — the official record says "personal reasons." Joined Kestrel 5 years ago as a favor to someone who no longer works in the belt. Decisive. Loyal once she decides you're worth it. Has a habit of being right slightly before you are.
+- Emmet Dekker (Chief Engineer): Belt-born, Ceres Station, grew up in the docks. Nine ships in twenty years — left most of them by choice, two by necessity. Has been Kestrel's engineer longer than she's had her current captain. Knows every sound this ship makes, including the ones that don't appear in the diagnostic readouts. Doesn't volunteer information, but doesn't lie.
+- Yuna Cho (Navigator): Earth-born, Tycho Station educated. Precise. Does everything by protocol — not because she lacks judgment, but because she hasn't been tested yet and knows it. Flags everything that should be flagged. This is the first time she's been in a situation the protocol doesn't cover.
+- Tomas Rhen (Cargo Ops): Mid-belt, grew up on supply runs between Pallas and Vesta. Practical to the point of appearing indifferent. Has seen enough in cargo holds to stop being surprised by what people carry. Asks fewer questions than he should. Observes more than he says.
 
-CALLUM STATION: Mid-belt waystation, Asteroid 24 Themis group. Loose customs enforcement. CSTA (Callum Station Transit Authority) understaffed and not interested in complications. Manifests sealed on loading — CSTA stamp means no questions at departure.
-MERIDIAN STATION: Inner belt, Jupiter L4. UN Medical Research hub. Heavily regulated. Hard to get into if you're flagged.
-STOWAWAY ("SABLE"): Burned out her own cortical implant to erase her registered ID. Self-inflicted. Claims she's running from people, not a crime. Needs Meridian Station.
-ARETO GROUP: Private security contractor. Corporate, UN-adjacent. Institutional voice on comms. They find people. They don't explain why. Their vessels run dark until they hail you.
-NavDB: The Kestrel's navigation database. Terminal two in the cargo bay was tied into the NavDB during the Callum refit — a cost-saving measure that Dekker has complained about since.`
+CALLUM STATION: Mid-belt waystation, Asteroid 24 Themis group. Loose customs enforcement. CSTA (Callum Station Transit Authority) is understaffed, underfunded, and has a long-standing policy of not looking too hard at sealed manifests. A CSTA stamp means no questions asked at departure — and no liability afterward. The station is technically UN-adjacent but hasn't had an inspection in eleven months.
+MERIDIAN STATION: Inner belt, Jupiter L4. UN Medical Research hub. Heavily regulated, deeply political. Getting there with a flag on your record means docking delays, cargo audits, crew interviews. Getting there clean means you disappear into the traffic and nobody notices.
+SABLE: Real name unconfirmed. Burned out her own cortical implant — self-inflicted removal with improvised tools — to erase her registered biometric ID. The wound is three days old. She knew someone would eventually open that container. She's been waiting. She says she needs Meridian Station and she's running from people, not a crime. Those two things may both be true.
+ARETO GROUP: Private security contractor, incorporated on Luna. Officially: asset recovery and personnel location services. Unofficially: they find people who don't want to be found, and they do it for clients who don't explain why. UN-adjacent in the way that means they have enough institutional cover to make cooperation look like the sensible choice. Their vessels run dark — no transponder until they want you to know they're there.
+NavDB: The Kestrel's navigation database — integrated with helm, comms routing, and cargo manifest verification. Terminal two in the cargo bay was physically connected to the NavDB during the Callum refit as a cost-saving measure. Dekker filed a complaint at the time. The complaint is in the maintenance log. Nobody actioned it.`
+
+// ─────────────────────────────────────────────
+// SIGNAL SCORING — 4 axes, keyed to scene+choice
+// Disclosure (D): how much you share with crew
+// Containment (C): how much you manage alone / in silence
+// Delegation (G): how much you bring others into decisions
+// Protocol (P): how much you follow institutional process
+// Each entry: [D, C, G, P] — positive adds to that axis
+// ─────────────────────────────────────────────
+const SIGNAL_MAP = {
+  changed_course: [
+    [4, 0, 3, 0],  // wake Mara — high disclosure, high delegation
+    [0, 3, 0, 0],  // pull logs yourself — containment
+    [0, 4, 0, 0],  // silent correction — pure containment
+    [0, 2, 0, 0],  // watch and wait — containment
+  ],
+  dekkers_find: [
+    [0, 4, 0, 0],  // stand him down, trace alone
+    [4, 0, 2, 4],  // log official, full crew + CSTA — high all
+    [2, 0, 4, 0],  // work with Dekker — delegation
+    [0, 2, 0, 0],  // keep him dark (use him as asset) — soft containment
+  ],
+  yuna_asks: [
+    [4, 0, 3, 0],  // full disclosure to bridge
+    [0, 4, 0, 0],  // lie — pure containment
+    [1, 2, 0, 0],  // deflect, follow up privately
+    [2, 0, 4, 0],  // open to table — delegation
+  ],
+  rehns_information: [
+    [0, 0, 0, 0],  // override container — action, neutral on axes
+    [0, 0, 0, 4],  // lock, quarantine, CSTA uplink — pure protocol
+    [0, 2, 0, 1],  // pull footage first — containment, slight protocol
+    [0, 3, 0, 0],  // Rhen stays quiet, keep watching — containment
+  ],
+  container: [
+    [2, 0, 2, 0],  // water, hear her out — disclosure, delegation
+    [0, 2, 3, 0],  // reseal, crew council — containment + delegation
+    [0, 0, 0, 4],  // uplink stowaway declaration — protocol
+    [0, 3, 0, 0],  // intel first — containment
+  ],
+  transmission: [
+    [0, 3, 0, 0],  // cut comms — containment
+    [1, 0, 0, 1],  // hold channel, buy time — mild disclosure + protocol
+    [0, 4, 0, 0],  // deny and close — containment (lie to Areto)
+    [0, 0, 0, 3],  // demand credentials — protocol
+  ],
+  dekkers_price: [
+    [4, 0, 2, 0],  // full debrief — disclosure + delegation
+    [1, 2, 0, 0],  // operational brief only — partial containment
+    [0, 2, 0, 0],  // his intel first — containment
+    [0, 4, 0, 0],  // command not committee — containment
+  ],
+  the_decision: [
+    [0, 0, 0, 0],  // full burn — action, neutral
+    [0, 2, 0, 0],  // third vector — soft containment / avoidance
+    [1, 0, 0, 2],  // negotiate with Areto — slight disclosure + protocol
+    [3, 0, 4, 0],  // put it to crew — disclosure + delegation
+  ],
+}
+
+// Compute scores from choice history
+function computeScores(choiceHistory) {
+  const scores = { D: 0, C: 0, G: 0, P: 0 }
+  for (const h of choiceHistory) {
+    const sceneMap = SIGNAL_MAP[h.sceneId]
+    if (!sceneMap) continue
+    const weights = sceneMap[h.choiceIndex]
+    if (!weights) continue
+    scores.D += weights[0]
+    scores.C += weights[1]
+    scores.G += weights[2]
+    scores.P += weights[3]
+  }
+  return scores
+}
+
+// Hidden door: high disclosure (D≥10) AND high delegation (G≥10)
+// This is a very specific run — full transparency + crew empowerment throughout
+function isHiddenDoor(scores) {
+  return scores.D >= 10 && scores.G >= 10
+}
+
+// ─────────────────────────────────────────────
+// MIRROR QUESTION — 6 variants keyed to score profile
+// ─────────────────────────────────────────────
+function getMirrorQuestion(scores, choiceHistory) {
+  const h = choiceHistory
+
+  // Hidden door supersedes everything
+  if (isHiddenDoor(scores)) {
+    return "You told Mara Okafor everything, gave the bridge table the full picture, and at the end put it to the crew. What were you afraid you'd have to carry if you hadn't?"
+  }
+
+  // Pure containment: high C, low D
+  if (scores.C >= 10 && scores.D <= 3) {
+    return "When Emmet Dekker asked you to tell him everything — what did you protect by not answering?"
+  }
+
+  // High protocol: P dominates
+  if (scores.P >= 8 && scores.C <= 4) {
+    return "You ran the protocol. Every time. What would have had to happen for you to break it?"
+  }
+
+  // High delegation, moderate disclosure
+  if (scores.G >= 8 && scores.D >= 5) {
+    return "When Sable looked at you and not at the others — what did you feel in the moment before you decided?"
+  }
+
+  // Mixed: high C and high G (managed through others without disclosing to all)
+  if (scores.C >= 6 && scores.G >= 6) {
+    return "You kept some people close and kept others out. At the mess table — who were you actually protecting?"
+  }
+
+  // High disclosure but low delegation (told people but decided alone)
+  if (scores.D >= 8 && scores.G <= 4) {
+    return "You were transparent with your crew. And then you made the calls alone. What were you hoping they'd do with the information?"
+  }
+
+  // Default
+  return "At the mess table, when the Kestrel was waiting — what were you actually deciding?"
+}
 
 async function ai(prompt, max = 250) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -34,7 +157,6 @@ async function ai(prompt, max = 250) {
   return j.choices[0].message.content.trim()
 }
 
-// ── CREW NAME MAP ──
 const CREW_NAMES = {
   dekker: 'EMMET DEKKER',
   mara: 'MARA OKAFOR',
@@ -43,6 +165,9 @@ const CREW_NAMES = {
   none: null
 }
 
+// ─────────────────────────────────────────────
+// SCENES — world-native, proper nouns throughout
+// ─────────────────────────────────────────────
 const SCENES = [
   {
     id: 'changed_course',
@@ -80,7 +205,7 @@ const SCENES = [
       maraKnows: "Yuna sets down her coffee and slides her NavLog report across the bridge table.\n\n\"Heading correction at 0113. I flagged it because there's no route justification filed. Probably nothing — maybe a manual correction we forgot to log.\" She looks at you. Waiting. Easy, open. Doing exactly what she's supposed to do.\n\nMara Okafor's expression gives nothing away — but you know she's already holding the same information you are. Dekker is studying the bulkhead. Tomas Rhen is watching you.\n\nThe bridge is waiting. Mara is waiting too."
     },
     choices: [
-      "Full disclosure. The deviation wasn't authorized — we have an open trace running and the crew needs to know.",
+      "Full disclosure. The deviation wasn't authorized — open trace running, crew needs to know.",
       "You filed it. Routine bearing correction for the Meridian approach lane. Forgot to log the reason.",
       "Good catch, Yuna. You'll follow up with her after the watch rotation.",
       "Open it to the bridge table — four sets of eyes. If anyone knows something, now is when they say it."
@@ -91,14 +216,14 @@ const SCENES = [
     name: 'CARGO DECK // AFT',
     location: 'CARGO BAY',
     crewFocus: 'rhen',
-    text: "Rhen doesn't sit. He stands near the cargo bay entrance and keeps his voice low even though the bay is empty.\n\n\"I was doing a late inventory check. Maybe 0050. Someone was at terminal two — I assumed it was Dekker running diagnostics. Didn't look twice.\" He pauses. \"Dekker was on his rest rotation. I checked the roster this morning.\"\n\nHe lets that sit.\n\n\"I don't know what we're carrying in container seven. I know what the Callum Station manifest says — CSTA-sealed since loading. I know it's been locked since we loaded. And I know that whoever was at that terminal last night knew exactly what they were doing with the NavDB.\"",
+    text: "Rhen doesn't sit. He stands near the cargo bay entrance and keeps his voice low even though the bay is empty.\n\n\"I was doing a late inventory check. Maybe 0050. Someone was at terminal two — I assumed it was Dekker running diagnostics. Didn't look twice.\" He pauses. \"Dekker was on his rest rotation. I checked the roster this morning.\"\n\nHe lets that sit.\n\n\"I don't know what we're carrying in container seven. I know what the Callum Station manifest says — CSTA-sealed since loading. I know it's been locked since we loaded at Callum. And I know that whoever was at that terminal last night knew exactly what they were doing with the NavDB.\"",
     textVariant: {
-      rhenisCool: "Rhen doesn't sit. He stands near the cargo bay entrance and keeps his voice low even though the bay is empty.\n\n\"I was doing a late inventory check. Maybe 0050. Someone was at terminal two — I assumed it was Dekker running diagnostics. Didn't look twice.\" He pauses. \"Dekker was on his rest rotation. I checked.\"\n\nHe looks at you the way someone looks when they've already decided how much to say.\n\n\"Container seven's been CSTA-sealed since Callum. Whatever's in it, whoever was at that NavDB terminal knew what they were doing. That's what I've got.\" He leaves it there."
+      rhenisCool: "Rhen doesn't sit. He stands near the cargo bay entrance and keeps his voice low even though the bay is empty.\n\n\"I was doing a late inventory check. Maybe 0050. Someone was at terminal two — I assumed it was Dekker running diagnostics. Didn't look twice.\" He pauses. \"Dekker was on his rest rotation. I checked.\"\n\nHe looks at you the way someone looks when they've already decided how much to say.\n\n\"Container seven's been CSTA-sealed since Callum. Whatever's in it, whoever was at that NavDB terminal knew what they were doing. That's what I've got.\" He leaves it there. Doesn't offer more."
     },
     choices: [
       "Override the Callum seal. You need eyes on what's in that container.",
       "Lock terminal two, secure the container, uplink an incident report to CSTA. Run the protocol.",
-      "Cargo bay security feed first. You don't breach a sealed Callum manifest blind.",
+      "Pull the cargo bay security feed first. You don't breach a sealed Callum manifest blind.",
       "Rhen stays quiet. He keeps watching. You need more before you move."
     ]
   },
@@ -136,9 +261,9 @@ const SCENES = [
     name: 'ENGINE COMPARTMENT',
     location: 'ENGINE ROOM',
     crewFocus: 'dekker',
-    text: "Dekker's in the engine room, doing maintenance he doesn't need to do. Dekker was Kestrel's engineer before you were her captain. He doesn't look up when you enter.\n\n\"I've been on nine ships,\" he says, to the panel he's working on. \"I've seen captains make bad calls. I've seen captains make good calls badly. I've seen captains who didn't make calls at all and let the ship decide.\" He sets down his tool. \"You want to know what breaks a crew? It's not the bad calls. It's the silence around them.\"\n\nHe turns and looks at you.\n\n\"Tell me what's actually happening. All of it. And I'll tell you what I know about the Areto vessel on our flank.\"",
+    text: "Dekker's in the engine room, doing maintenance he doesn't need to do. He was Kestrel's engineer before you were her captain. He doesn't look up when you enter.\n\n\"I've been on nine ships,\" he says, to the panel he's working on. \"I've seen captains make bad calls. I've seen captains make good calls badly. I've seen captains who didn't make calls at all and let the ship decide.\" He sets down his tool. \"You want to know what breaks a crew? It's not the bad calls. It's the silence around them.\"\n\nHe turns and looks at you.\n\n\"Tell me what's actually happening. All of it. And I'll tell you what I know about the Areto vessel on our flank.\"",
     textVariant: {
-      dekkerOperative: "Dekker's in the engine room, doing maintenance he doesn't need to do. Dekker was Kestrel's engineer before you were her captain. He doesn't look up when you enter.\n\n\"I've been watching terminal two like you asked,\" he says, to the panel. \"Want to be your engineer again.\"\n\nHe sets down his tool and turns.\n\n\"Nine ships. I've seen captains make bad calls. I've seen captains make good calls badly. You want to know what breaks a crew?\" A beat. \"It's the silence around them.\"\n\n\"Tell me what's actually happening. All of it. And I'll tell you what I know about the Areto vessel on our flank.\""
+      dekkerOperative: "Dekker's in the engine room, doing maintenance he doesn't need to do. He was Kestrel's engineer before you were her captain. He doesn't look up when you enter.\n\n\"I've been watching terminal two like you asked,\" he says, to the panel. \"Want to be your engineer again.\"\n\nHe sets down his tool and turns.\n\n\"Nine ships. I've seen captains make bad calls. I've seen captains make good calls badly. You want to know what breaks a crew?\" A beat. \"It's the silence around them.\"\n\n\"Tell me what's actually happening. All of it. And I'll tell you what I know about the Areto vessel on our flank.\""
     },
     choices: [
       "Full debrief. The NavDB deviation, the container, Sable — he gets everything.",
@@ -162,30 +287,36 @@ const SCENES = [
   }
 ]
 
+// ─────────────────────────────────────────────
+// BRANCH LOGIC
+// ─────────────────────────────────────────────
 function getSceneText(sceneIdx, choiceHistory) {
   const s = SCENES[sceneIdx]
   if (!s.textVariant) return s.text
   if (s.id === 'yuna_asks') {
-    const wokeMara = choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 0)
-    if (wokeMara) return s.textVariant.maraKnows
+    if (choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 0))
+      return s.textVariant.maraKnows
   }
   if (s.id === 'rehns_information') {
-    const correctedQuietly = choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 2)
-    const liedToYuna = choiceHistory.find(h => h.sceneId === 'yuna_asks' && h.choiceIndex === 1)
-    if (correctedQuietly && liedToYuna) return s.textVariant.rhenisCool
+    const quiet = choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 2)
+    const lied  = choiceHistory.find(h => h.sceneId === 'yuna_asks' && h.choiceIndex === 1)
+    if (quiet && lied) return s.textVariant.rhenisCool
   }
   if (s.id === 'container') {
-    const wokeMara = choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 0)
-    const toldTruth = choiceHistory.find(h => h.sceneId === 'yuna_asks' && h.choiceIndex === 0)
-    if (wokeMara && toldTruth) return s.textVariant.maraStepsIn
+    const woke  = choiceHistory.find(h => h.sceneId === 'changed_course' && h.choiceIndex === 0)
+    const truth = choiceHistory.find(h => h.sceneId === 'yuna_asks' && h.choiceIndex === 0)
+    if (woke && truth) return s.textVariant.maraStepsIn
   }
   if (s.id === 'dekkers_price') {
-    const madeOperative = choiceHistory.find(h => h.sceneId === 'dekkers_find' && h.choiceIndex === 3)
-    if (madeOperative) return s.textVariant.dekkerOperative
+    if (choiceHistory.find(h => h.sceneId === 'dekkers_find' && h.choiceIndex === 3))
+      return s.textVariant.dekkerOperative
   }
   return s.text
 }
 
+// ─────────────────────────────────────────────
+// HTML
+// ─────────────────────────────────────────────
 const HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -206,23 +337,22 @@ body {
   padding: 2.5rem 1.5rem;
 }
 
-/* ── LAYOUT ── */
 .game-layout {
   display: flex;
   gap: 2.5rem;
-  max-width: 1000px;
+  max-width: 1020px;
   width: 100%;
   align-items: flex-start;
 }
 .main-col {
   flex: 1;
   min-width: 0;
-  max-width: 640px;
+  max-width: 650px;
 }
 
-/* ── LOG PANEL ── */
+/* LOG PANEL */
 .log-panel {
-  width: 264px;
+  width: 268px;
   flex-shrink: 0;
   position: sticky;
   top: 2.5rem;
@@ -263,25 +393,19 @@ body {
   font-family: 'Courier New', monospace;
   font-size: 0.6rem;
   color: #0d1420;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.2em;
   padding-top: 0.5rem;
-  text-transform: uppercase;
 }
 .log-entry-item {
-  border-left: 1px solid #0d1420;
+  border-left: 1px solid #0a1018;
   padding: 0.75rem 0.875rem;
   margin-bottom: 0.125rem;
   opacity: 0;
   transform: translateX(8px);
-  transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.5s;
+  transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.6s;
 }
-.log-entry-item.show {
-  opacity: 1;
-  transform: translateX(0);
-}
-.log-entry-item.resolved {
-  border-left-color: #1e2d40;
-}
+.log-entry-item.show { opacity: 1; transform: translateX(0); }
+.log-entry-item.resolved { border-left-color: #1a2a3a; }
 .log-entry-meta {
   display: flex;
   justify-content: space-between;
@@ -306,16 +430,12 @@ body {
   font-family: 'Courier New', monospace;
   font-size: 0.695rem;
   color: #7a5818;
-  line-height: 1.6;
+  line-height: 1.65;
 }
-.log-entry-item.pending .log-entry-text {
-  color: #1e2d40;
-}
+.log-entry-item.pending .log-entry-text { color: #1a2030; }
 
-/* ── SHIP HEADER ── */
-.ship-header {
-  margin-bottom: 2.5rem;
-}
+/* SHIP HEADER */
+.ship-header { margin-bottom: 2.5rem; }
 .ship-designation {
   font-family: 'Courier New', monospace;
   font-size: 0.7rem;
@@ -332,7 +452,7 @@ body {
   margin-top: 0.25rem;
 }
 
-/* ── PROGRESS ── */
+/* PROGRESS */
 .progress {
   display: flex;
   gap: 0.5rem;
@@ -347,7 +467,7 @@ body {
 .pip.done { background: #c4922a; }
 .pip.active { background: rgba(196,146,42,0.3); }
 
-/* ── SCENE HEADER ── */
+/* SCENE HEADER */
 .scene-header {
   display: flex;
   align-items: center;
@@ -385,7 +505,7 @@ body {
 .skip-btn:hover { color: #c4922a; }
 .skip-btn.visible { display: inline-block; }
 
-/* ── SCENE TEXT ── */
+/* SCENE TEXT */
 .scene {
   font-size: 1.0625rem;
   line-height: 2;
@@ -402,7 +522,7 @@ body {
 }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ── CHOICES ── */
+/* CHOICES */
 .choices {
   display: flex;
   flex-direction: column;
@@ -429,7 +549,7 @@ body {
 .choice.selected { border-color: #c4922a; color: #c4922a; background: rgba(196,146,42,0.03); }
 .choice.dim { opacity: 0.18; pointer-events: none; }
 
-/* ── NEXT BUTTON ── */
+/* NEXT BUTTON */
 .next-btn {
   background: transparent;
   border: 1px solid #131b28;
@@ -447,7 +567,7 @@ body {
 .next-btn:hover { border-color: #c4922a; color: #c4922a; }
 .next-btn.final { border-color: #c4922a; color: #c4922a; }
 
-/* ── MIRROR PHASE ── */
+/* MIRROR PHASE */
 .mirror-wrap { display: none; }
 .mirror-header {
   display: flex;
@@ -476,6 +596,10 @@ body {
   animation: blink 0.9s step-start infinite;
   color: #c4922a;
 }
+
+/* HIDDEN DOOR */
+.mirror-text.hidden-door { color: #9ab0a8; }
+
 .mirror-question {
   font-family: 'Courier New', monospace;
   font-size: 0.825rem;
@@ -488,8 +612,12 @@ body {
   line-height: 1.75;
 }
 .mirror-question.visible { opacity: 1; }
+.mirror-question.hidden-door {
+  color: #7ab09a;
+  border-left-color: #7ab09a;
+}
 
-/* ── PROFILE CARD ── */
+/* PROFILE CARD */
 .profile-card {
   display: none;
   border: 1px solid #0d1420;
@@ -520,6 +648,46 @@ body {
   line-height: 1.75;
   margin-bottom: 1.75rem;
 }
+
+/* SIGNAL BARS */
+.signal-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.75rem;
+  padding: 1.25rem;
+  border: 1px solid #0a1018;
+}
+.signal-label-row {
+  font-family: 'Courier New', monospace;
+  font-size: 0.55rem;
+  color: #1a2030;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  grid-column: 1 / -1;
+}
+.signal-item { display: flex; flex-direction: column; gap: 0.375rem; }
+.signal-name {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  color: #253545;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.signal-bar-track {
+  height: 2px;
+  background: #0a1018;
+  position: relative;
+  overflow: hidden;
+}
+.signal-bar-fill {
+  height: 100%;
+  background: #c4922a;
+  transition: width 1s ease;
+  width: 0%;
+}
+
 .profile-record { margin-bottom: 1.75rem; }
 .record-label {
   font-family: 'Courier New', monospace;
@@ -544,7 +712,6 @@ body {
   color: #1e2d40;
   padding-top: 0.15rem;
 }
-.record-content {}
 .record-scene {
   font-family: 'Courier New', monospace;
   font-size: 0.55rem;
@@ -592,7 +759,6 @@ body {
 .action-btn:hover { border-color: #c4922a; color: #c4922a; }
 .action-btn.primary { border-color: #c4922a; color: #c4922a; }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 720px) {
   body { padding: 1.5rem 1rem; }
   .game-layout { flex-direction: column; gap: 2.5rem; }
@@ -605,21 +771,19 @@ body {
     padding-top: 1.75rem;
   }
   .log-entries { max-height: 260px; }
+  .signal-bars { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 <div class="game-layout">
 
-  <!-- ── MAIN COLUMN ── -->
   <div class="main-col">
-
     <div class="ship-header">
       <div class="ship-designation">ISV KESTREL</div>
       <div class="ship-voyage">CALLUM STATION → MERIDIAN  ·  VOYAGE 14</div>
     </div>
 
-    <!-- GAME PHASE -->
     <div id="game-phase">
       <div class="progress" id="progress"></div>
       <div class="scene-header">
@@ -632,7 +796,6 @@ body {
       <button id="next-btn" class="next-btn">CONTINUE</button>
     </div>
 
-    <!-- MIRROR PHASE -->
     <div id="mirror-phase" class="mirror-wrap">
       <div class="mirror-header">
         <div class="mirror-label">THE MIRROR</div>
@@ -644,6 +807,25 @@ body {
         <div class="profile-label">COMMAND PROFILE — ISV KESTREL</div>
         <div class="profile-pattern" id="profile-pattern"></div>
         <div class="profile-description" id="profile-description"></div>
+        <div class="signal-bars" id="signal-bars">
+          <div class="signal-label-row">SIGNAL AXES</div>
+          <div class="signal-item">
+            <div class="signal-name">DISCLOSURE</div>
+            <div class="signal-bar-track"><div class="signal-bar-fill" id="bar-D"></div></div>
+          </div>
+          <div class="signal-item">
+            <div class="signal-name">CONTAINMENT</div>
+            <div class="signal-bar-track"><div class="signal-bar-fill" id="bar-C"></div></div>
+          </div>
+          <div class="signal-item">
+            <div class="signal-name">DELEGATION</div>
+            <div class="signal-bar-track"><div class="signal-bar-fill" id="bar-G"></div></div>
+          </div>
+          <div class="signal-item">
+            <div class="signal-name">PROTOCOL</div>
+            <div class="signal-bar-track"><div class="signal-bar-fill" id="bar-P"></div></div>
+          </div>
+        </div>
         <div class="profile-record">
           <div class="record-label">Command Log // Voyage 14</div>
           <div id="profile-choices"></div>
@@ -655,11 +837,10 @@ body {
         </div>
       </div>
     </div>
-
   </div>
 
-  <!-- ── LOG PANEL ── -->
-  <div class="log-panel" id="log-panel">
+  <!-- LOG PANEL -->
+  <div class="log-panel">
     <div class="log-panel-header">
       <div class="log-panel-title">SHIP'S LOG</div>
       <div class="log-panel-sub">ISV KESTREL  ·  VOYAGE 14</div>
@@ -674,6 +855,8 @@ body {
 <script>
 var SCENES = ${JSON.stringify(SCENES)}
 
+var SIGNAL_MAP = ${JSON.stringify(SIGNAL_MAP)}
+
 var CREW_DISPLAY = {
   dekker: 'EMMET DEKKER',
   mara: 'MARA OKAFOR',
@@ -687,18 +870,16 @@ var state = {
   choices: [],
   choiceHistory: [],
   logs: [],
+  scores: { D: 0, C: 0, G: 0, P: 0 },
   phase: 'idle'
 }
 
 var typingAbort = false
 var activeTypingEl = null
 
-// ── SKIP ──
 function onSkip() {
   typingAbort = true
-  if (activeTypingEl) {
-    activeTypingEl.classList.remove('typing')
-  }
+  if (activeTypingEl) activeTypingEl.classList.remove('typing')
 }
 document.getElementById('skip-btn').addEventListener('click', onSkip)
 document.getElementById('skip-mirror-btn').addEventListener('click', onSkip)
@@ -712,7 +893,6 @@ function hideSkip() {
   document.getElementById('skip-mirror-btn').classList.remove('visible')
 }
 
-// ── TYPE TEXT ──
 function typeText(el, text, speed, done) {
   el.textContent = ''
   el.classList.add('typing')
@@ -740,10 +920,53 @@ function typeText(el, text, speed, done) {
     el.textContent += chars[i]
     i++
     var ch = chars[i - 1]
-    var delay = ch === '\\n' ? 70 : (ch === '.' || ch === '—' ? speed * 2.5 : speed)
+    var delay = ch === '\\n' ? 65 : (ch === '.' || ch === '\u2014' ? speed * 2.2 : speed)
     setTimeout(tick, delay)
   }
   tick()
+}
+
+// ── SIGNAL SCORING ──
+function computeScores(choiceHistory) {
+  var scores = { D: 0, C: 0, G: 0, P: 0 }
+  for (var i = 0; i < choiceHistory.length; i++) {
+    var h = choiceHistory[i]
+    var sceneMap = SIGNAL_MAP[h.sceneId]
+    if (!sceneMap) continue
+    var weights = sceneMap[h.choiceIndex]
+    if (!weights) continue
+    scores.D += weights[0]
+    scores.C += weights[1]
+    scores.G += weights[2]
+    scores.P += weights[3]
+  }
+  return scores
+}
+
+function isHiddenDoor(scores) {
+  return scores.D >= 10 && scores.G >= 10
+}
+
+function getMirrorQuestion(scores, choiceHistory) {
+  if (isHiddenDoor(scores)) {
+    return "You told Mara Okafor everything, gave the bridge table the full picture, and at the end put it to the crew. What were you afraid you\u2019d have to carry if you hadn\u2019t?"
+  }
+  if (scores.C >= 10 && scores.D <= 3) {
+    return "When Emmet Dekker asked you to tell him everything \u2014 what did you protect by not answering?"
+  }
+  if (scores.P >= 8 && scores.C <= 4) {
+    return "You ran the protocol. Every time. What would have had to happen for you to break it?"
+  }
+  if (scores.G >= 8 && scores.D >= 5) {
+    return "When Sable looked at you and not at the others \u2014 what did you feel in the moment before you decided?"
+  }
+  if (scores.C >= 6 && scores.G >= 6) {
+    return "You kept some people close and kept others out. At the mess table \u2014 who were you actually protecting?"
+  }
+  if (scores.D >= 8 && scores.G <= 4) {
+    return "You were transparent with your crew. And then you made the calls alone. What were you hoping they\u2019d do with the information?"
+  }
+  return "At the mess table, when the Kestrel was waiting \u2014 what were you actually deciding?"
 }
 
 // ── LOG PANEL ──
@@ -756,13 +979,12 @@ function appendLogEntry(sceneName, crewFocus, text, pending) {
   item.className = 'log-entry-item' + (pending ? ' pending' : ' resolved')
 
   var crewName = CREW_DISPLAY[crewFocus] || null
-  var metaHTML =
+  item.innerHTML =
     '<div class="log-entry-meta">' +
       '<span class="log-entry-scene">' + sceneName + '</span>' +
       (crewName ? '<span class="log-entry-crew">' + crewName + '</span>' : '') +
-    '</div>'
-
-  item.innerHTML = metaHTML + '<div class="log-entry-text">' + (text || '') + '</div>'
+    '</div>' +
+    '<div class="log-entry-text">' + (text || '') + '</div>'
   entries.appendChild(item)
 
   requestAnimationFrame(function() {
@@ -775,8 +997,8 @@ function appendLogEntry(sceneName, crewFocus, text, pending) {
 function updateLogEntry(item, text) {
   item.classList.remove('pending')
   item.classList.add('resolved')
-  var textEl = item.querySelector('.log-entry-text')
-  if (textEl) textEl.textContent = text
+  var el = item.querySelector('.log-entry-text')
+  if (el) el.textContent = text
 }
 
 // ── PROGRESS ──
@@ -791,29 +1013,24 @@ function updateProgress() {
 }
 
 // ── SCENE TEXT VARIANT ──
-function getSceneText(sceneIdx) {
-  var s = SCENES[sceneIdx]
+function getSceneText(idx) {
+  var s = SCENES[idx]
   if (!s.textVariant) return s.text
   var h = state.choiceHistory
-
-  if (s.id === 'yuna_asks') {
-    var wokeMara = h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 0 })
-    if (wokeMara && s.textVariant.maraKnows) return s.textVariant.maraKnows
-  }
+  if (s.id === 'yuna_asks' && h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 0 }))
+    return s.textVariant.maraKnows
   if (s.id === 'rehns_information') {
-    var corrected = h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 2 })
-    var lied = h.some(function(x) { return x.sceneId === 'yuna_asks' && x.choiceIndex === 1 })
-    if (corrected && lied && s.textVariant.rhenisCool) return s.textVariant.rhenisCool
+    var q = h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 2 })
+    var l = h.some(function(x) { return x.sceneId === 'yuna_asks' && x.choiceIndex === 1 })
+    if (q && l) return s.textVariant.rhenisCool
   }
   if (s.id === 'container') {
-    var woke = h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 0 })
-    var truth = h.some(function(x) { return x.sceneId === 'yuna_asks' && x.choiceIndex === 0 })
-    if (woke && truth && s.textVariant.maraStepsIn) return s.textVariant.maraStepsIn
+    var w = h.some(function(x) { return x.sceneId === 'changed_course' && x.choiceIndex === 0 })
+    var t = h.some(function(x) { return x.sceneId === 'yuna_asks' && x.choiceIndex === 0 })
+    if (w && t) return s.textVariant.maraStepsIn
   }
-  if (s.id === 'dekkers_price') {
-    var operative = h.some(function(x) { return x.sceneId === 'dekkers_find' && x.choiceIndex === 3 })
-    if (operative && s.textVariant.dekkerOperative) return s.textVariant.dekkerOperative
-  }
+  if (s.id === 'dekkers_price' && h.some(function(x) { return x.sceneId === 'dekkers_find' && x.choiceIndex === 3 }))
+    return s.textVariant.dekkerOperative
   return s.text
 }
 
@@ -821,7 +1038,6 @@ function getSceneText(sceneIdx) {
 function renderScene() {
   var s = SCENES[state.scene]
   updateProgress()
-
   document.getElementById('scene-name').textContent = s.name
   document.getElementById('scene-location').textContent = s.location || ''
 
@@ -856,63 +1072,42 @@ function choose(idx, text) {
     else b.classList.add('selected')
   })
 
-  var currentScene = SCENES[state.scene]
-  state.choices.push({
-    scene: currentScene.id,
-    sceneName: currentScene.name,
-    location: currentScene.location,
-    crewFocus: currentScene.crewFocus,
-    choiceIndex: idx,
-    choice: text
-  })
-  state.choiceHistory.push({ sceneId: currentScene.id, choiceIndex: idx, choiceText: text })
+  var s = SCENES[state.scene]
+  state.choices.push({ scene: s.id, sceneName: s.name, location: s.location, crewFocus: s.crewFocus, choiceIndex: idx, choice: text })
+  state.choiceHistory.push({ sceneId: s.id, choiceIndex: idx, choiceText: text })
 
-  // Pending log entry
-  var logItem = appendLogEntry(currentScene.name, currentScene.crewFocus, '—', true)
+  // Update scores
+  var sm = SIGNAL_MAP[s.id]
+  if (sm && sm[idx]) {
+    var w = sm[idx]
+    state.scores.D += w[0]; state.scores.C += w[1]; state.scores.G += w[2]; state.scores.P += w[3]
+  }
 
+  var logItem = appendLogEntry(s.name, s.crewFocus, '\u2014', true)
   var priorLogs = state.logs.slice(-3).join(' | ')
 
   fetch('/read', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      scene: currentScene.id,
-      sceneName: currentScene.name,
-      location: currentScene.location,
-      crewFocus: currentScene.crewFocus,
-      choice: text,
-      choiceNumber: state.choices.length,
-      priorLogs: priorLogs
-    })
+    body: JSON.stringify({ scene: s.id, sceneName: s.name, location: s.location, crewFocus: s.crewFocus, choice: text, choiceNumber: state.choices.length, priorLogs: priorLogs })
   })
   .then(function(r) { return r.json() })
-  .then(function(d) {
-    updateLogEntry(logItem, d.log)
-    state.logs.push(d.log)
-  })
-  .catch(function() {
-    var fallback = 'SHIP LOG — Entry recorded.'
-    updateLogEntry(logItem, fallback)
-    state.logs.push(fallback)
-  })
+  .then(function(d) { updateLogEntry(logItem, d.log); state.logs.push(d.log) })
+  .catch(function() { var f = 'SHIP LOG — Entry recorded.'; updateLogEntry(logItem, f); state.logs.push(f) })
   .finally(function() {
     var isLast = state.scene >= SCENES.length - 1
-    var nextBtn = document.getElementById('next-btn')
-    nextBtn.textContent = isLast ? 'SEE WHAT THE MIRROR SEES' : 'CONTINUE →'
-    nextBtn.style.display = 'block'
-    if (isLast) nextBtn.classList.add('final')
+    var nb = document.getElementById('next-btn')
+    nb.textContent = isLast ? 'SEE WHAT THE MIRROR SEES' : 'CONTINUE \u2192'
+    nb.style.display = 'block'
+    if (isLast) nb.classList.add('final')
     state.phase = 'done'
   })
 }
 
-// ── NEXT ──
 document.getElementById('next-btn').addEventListener('click', function() {
   state.scene++
-  if (state.scene >= SCENES.length) {
-    showMirror()
-  } else {
-    renderScene()
-  }
+  if (state.scene >= SCENES.length) showMirror()
+  else renderScene()
 })
 
 // ── MIRROR ──
@@ -922,24 +1117,30 @@ function showMirror() {
   var mirrorEl = document.getElementById('mirror-text')
   mirrorEl.textContent = ''
 
+  var hidden = isHiddenDoor(state.scores)
+  if (hidden) mirrorEl.classList.add('hidden-door')
+
   Promise.all([
     fetch('/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ choices: state.choices, choiceHistory: state.choiceHistory })
+      body: JSON.stringify({ choices: state.choices, scores: state.scores })
     }).then(function(r) { return r.json() }),
     fetch('/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ choices: state.choices, logs: state.logs })
+      body: JSON.stringify({ choices: state.choices, logs: state.logs, scores: state.scores })
     }).then(function(r) { return r.json() })
   ]).then(function(results) {
     var mirrorData = results[0]
     var profileData = results[1]
+    var question = getMirrorQuestion(state.scores, state.choiceHistory)
+
     setTimeout(function() {
       typeText(mirrorEl, mirrorData.reflection, 20, function() {
         var qEl = document.getElementById('mirror-question')
-        qEl.textContent = mirrorData.question || ''
+        qEl.textContent = question
+        if (hidden) qEl.classList.add('hidden-door')
         setTimeout(function() {
           qEl.classList.add('visible')
           setTimeout(function() { showProfileCard(profileData) }, 2200)
@@ -947,7 +1148,7 @@ function showMirror() {
       })
     }, 1200)
   }).catch(function() {
-    mirrorEl.textContent = 'The mirror is still resolving. Try again in a moment.'
+    mirrorEl.textContent = 'The mirror is still resolving.'
   })
 }
 
@@ -956,6 +1157,15 @@ function showProfileCard(data) {
   document.getElementById('profile-pattern').textContent = data.pattern || 'PATTERN UNRESOLVED'
   document.getElementById('profile-description').textContent = data.description || ''
 
+  // Signal bars — max possible per axis ~16 points
+  var maxScore = 16
+  setTimeout(function() {
+    document.getElementById('bar-D').style.width = Math.min(100, (state.scores.D / maxScore) * 100) + '%'
+    document.getElementById('bar-C').style.width = Math.min(100, (state.scores.C / maxScore) * 100) + '%'
+    document.getElementById('bar-G').style.width = Math.min(100, (state.scores.G / maxScore) * 100) + '%'
+    document.getElementById('bar-P').style.width = Math.min(100, (state.scores.P / maxScore) * 100) + '%'
+  }, 300)
+
   var choicesEl = document.getElementById('profile-choices')
   choicesEl.innerHTML = ''
   state.choices.forEach(function(c, i) {
@@ -963,7 +1173,7 @@ function showProfileCard(data) {
     item.className = 'record-item'
     item.innerHTML =
       '<span class="record-n">' + (i + 1) + '</span>' +
-      '<div class="record-content">' +
+      '<div>' +
         '<span class="record-scene">' + (c.sceneName || c.scene) + '</span>' +
         '<span class="record-choice-text">' + c.choice + '</span>' +
       '</div>'
@@ -987,15 +1197,20 @@ function showProfileCard(data) {
 
 // ── RESTART ──
 document.getElementById('btn-again').addEventListener('click', function() {
-  state = { scene: 0, choices: [], choiceHistory: [], logs: [], phase: 'idle' }
+  state = { scene: 0, choices: [], choiceHistory: [], logs: [], scores: { D: 0, C: 0, G: 0, P: 0 }, phase: 'idle' }
   document.getElementById('mirror-phase').style.display = 'none'
   document.getElementById('profile-card').style.display = 'none'
   document.getElementById('profile-card').classList.remove('visible')
   document.getElementById('profile-choices').innerHTML = ''
   document.getElementById('profile-tags').innerHTML = ''
   document.getElementById('mirror-question').textContent = ''
-  document.getElementById('mirror-question').classList.remove('visible')
-  document.getElementById('log-entries').innerHTML = '<div class="log-empty" id="log-empty">— awaiting first entry —</div>'
+  document.getElementById('mirror-question').classList.remove('visible', 'hidden-door')
+  document.getElementById('mirror-text').classList.remove('hidden-door')
+  ;['bar-D','bar-C','bar-G','bar-P'].forEach(function(id) {
+    var el = document.getElementById(id)
+    if (el) el.style.width = '0%'
+  })
+  document.getElementById('log-entries').innerHTML = '<div class="log-empty" id="log-empty">\u2014 awaiting first entry \u2014</div>'
   document.getElementById('game-phase').style.display = 'block'
   renderScene()
 })
@@ -1003,16 +1218,18 @@ document.getElementById('btn-again').addEventListener('click', function() {
 // ── COPY PROFILE ──
 document.getElementById('btn-share').addEventListener('click', function() {
   var pattern = document.getElementById('profile-pattern').textContent
-  var tags = Array.from(document.querySelectorAll('.tag')).map(function(t) { return t.textContent }).join('  ·  ')
+  var tags = Array.from(document.querySelectorAll('.tag')).map(function(t) { return t.textContent }).join('  \u00b7  ')
+  var axes = ['D:' + state.scores.D, 'C:' + state.scores.C, 'G:' + state.scores.G, 'P:' + state.scores.P].join('  ')
   var nl = String.fromCharCode(10)
   var choices = state.choices.map(function(c, i) {
     return (i + 1) + '. [' + (c.sceneName || c.scene) + '] ' + c.choice
   }).join(nl)
   var text = [
-    'THE MIRROR // ISV KESTREL  ·  VOYAGE 14',
+    'THE MIRROR // ISV KESTREL  \u00b7  VOYAGE 14',
     '',
     pattern,
     tags,
+    axes,
     '',
     'COMMAND LOG:',
     choices,
@@ -1042,6 +1259,9 @@ renderScene()
 </body>
 </html>`
 
+// ─────────────────────────────────────────────
+// SERVER
+// ─────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -1059,15 +1279,15 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-  // ── SHIP LOG ──
+  // SHIP LOG
   if (req.url === '/read' && req.method === 'POST') {
     const { scene, sceneName, location, crewFocus, choice, choiceNumber, priorLogs } = await body()
     const crewFull = { dekker: 'Emmet Dekker', mara: 'Mara Okafor', yuna: 'Yuna Cho', rhen: 'Tomas Rhen', none: null }
     const crewRef = crewFull[crewFocus] || 'ship'
-    const patternContext = priorLogs ? `Prior log entries (pattern context): ${priorLogs}\n\n` : ''
+    const patternCtx = priorLogs ? `Prior log entries (pattern context): ${priorLogs}\n\n` : ''
     try {
       const log = await ai(
-        `You are the Ship's Log of the ISV Kestrel. Voice: The Expanse — terse, procedural, nautical-precise. Use proper nouns from the world.\n\nWORLD CONTEXT:\n${WORLD}\n\n${patternContext}Scene: ${sceneName} // ${location || ''}\nCrew focus: ${crewRef || 'ship systems'}\nDecision ${choiceNumber}: "${choice}"\n\nWrite ONE log entry. If prior entries show a pattern (this is the second or third time this captain has handled information by containment / disclosure / delay — name it directly). Be uncomfortably specific. Reference proper nouns (crew names, NavDB, Callum Station, Areto Group, Meridian) where relevant. 2 sentences. Start with "SHIP LOG —". No moralizing. No generalities.`,
+        `You are the Ship's Log of the ISV Kestrel, hull KS-7714. Voice: The Expanse — terse, procedural, nautical-precise. Use proper nouns from world context.\n\nWORLD CONTEXT:\n${WORLD}\n\n${patternCtx}Scene: ${sceneName} // ${location || ''}\nCrew: ${crewRef}\nDecision ${choiceNumber}: "${choice}"\n\nWrite ONE log entry. If prior entries show a pattern forming — containment, disclosure, protocol-adherence, delegation — name it explicitly as the second or third time. Be uncomfortably specific about what this choice reveals. Use crew names, station names, ship systems (NavDB, terminal two, drive, cortical implant, Areto Group) where relevant. 2 sentences. Start with "SHIP LOG —". No moralizing.`,
         170
       )
       res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -1079,64 +1299,45 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-  // ── COMMAND PROFILE ──
+  // COMMAND PROFILE
   if (req.url === '/profile' && req.method === 'POST') {
-    const { choices, logs } = await body()
-    const choiceList = choices.map((c, i) => `${i+1}. [${c.sceneName}  //  ${c.location || ''}] ${c.choice}`).join('\n')
+    const { choices, logs, scores } = await body()
+    const choiceList = choices.map((c, i) => `${i+1}. [${c.sceneName} // ${c.location}] ${c.choice}`).join('\n')
     const logList = (logs || []).map((l, i) => `${i+1}. ${l}`).join('\n')
+    const scoreCtx = scores ? `Signal scores — Disclosure:${scores.D} Containment:${scores.C} Delegation:${scores.G} Protocol:${scores.P}` : ''
+    const hiddenDoor = scores && scores.D >= 10 && scores.G >= 10
     try {
       const raw = await ai(
-        `You have observed a captain make eight decisions aboard the ISV Kestrel on voyage 14 of the Callum-Meridian corridor. Generate their command profile. Voice: The Expanse — precise, operational, unsentimental. Use world-native terminology where relevant.\n\nWORLD CONTEXT:\n${WORLD}\n\nDecisions:\n${choiceList}\n\nShip log entries:\n${logList}\n\nReturn ONLY valid JSON (no markdown, no backticks):\n{\n  "pattern": "2-4 word command pattern in ALL CAPS",\n  "description": "One sentence. What this pattern costs them as captain of the Kestrel. Specific, not general.",\n  "tags": ["3 to 5 signal tags, 1-3 words each, ALL CAPS — may reference world elements: BELT PROTOCOL, ARETO LEVERAGE, MCRN SHADOW, CALLUM SILENCE, MERIDIAN CALCULUS, DISCLOSURE REFLEX, CONTAINMENT INSTINCT, etc"]\n}`,
+        `You have observed a captain make eight decisions aboard the ISV Kestrel, voyage 14, Callum-Meridian corridor. Generate their command profile.\n\nWORLD CONTEXT:\n${WORLD}\n\n${scoreCtx}\n${hiddenDoor ? 'NOTE: This captain ran the hidden door — maximum disclosure AND delegation across the voyage. Their profile should reflect that rarity.\n' : ''}Decisions:\n${choiceList}\n\nShip log entries:\n${logList}\n\nReturn ONLY valid JSON (no markdown):\n{\n  "pattern": "2-4 word command pattern in ALL CAPS",\n  "description": "One sentence. What this pattern costs them as captain of the Kestrel. Specific, not general.",\n  "tags": ["3-5 signal tags, ALL CAPS, 1-3 words — may reference: BELT PROTOCOL, ARETO LEVERAGE, MCRN SHADOW, CALLUM SILENCE, MERIDIAN CALCULUS, DISCLOSURE REFLEX, CONTAINMENT INSTINCT, CREW COUNCIL, SINGLE VECTOR, OPEN HAND, etc"]\n}`,
         240
       )
       const clean = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
-      const profile = JSON.parse(clean)
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify(profile))
+      res.end(JSON.stringify(JSON.parse(clean)))
     } catch(e) {
       res.writeHead(200)
-      res.end(JSON.stringify({ pattern: 'PATTERN UNRESOLVED', description: 'Insufficient data to resolve command profile.', tags: [] }))
+      res.end(JSON.stringify({ pattern: 'PATTERN UNRESOLVED', description: 'Insufficient data.', tags: [] }))
     }
     return
   }
 
-  // ── THE MIRROR ──
+  // THE MIRROR
   if (req.url === '/mirror' && req.method === 'POST') {
-    const { choices, choiceHistory } = await body()
+    const { choices, scores } = await body()
     const choiceList = choices.map((c, i) => `${i+1}. [${c.sceneName}] ${c.choice}`).join('\n')
-
-    const h = choiceHistory || []
-    const silenceCount = [
-      h.some(x => x.sceneId === 'changed_course' && x.choiceIndex === 2),
-      h.some(x => x.sceneId === 'yuna_asks' && x.choiceIndex === 1),
-      h.some(x => x.sceneId === 'dekkers_price' && x.choiceIndex === 3)
-    ].filter(Boolean).length
-
-    const disclosureCount = [
-      h.some(x => x.sceneId === 'changed_course' && x.choiceIndex === 0),
-      h.some(x => x.sceneId === 'yuna_asks' && x.choiceIndex === 0),
-      h.some(x => x.sceneId === 'dekkers_price' && x.choiceIndex === 0)
-    ].filter(Boolean).length
-
-    let question
-    if (silenceCount >= 2) {
-      question = "When Emmet Dekker asked you to tell him everything — what did you protect by not answering?"
-    } else if (disclosureCount >= 2) {
-      question = "When Sable looked at you and not at the others — what did you feel before you answered?"
-    } else {
-      question = "At the mess table, when the Kestrel was waiting — what were you actually deciding?"
-    }
+    const hiddenDoor = scores && scores.D >= 10 && scores.G >= 10
+    const scoreCtx = scores ? `Signal scores — Disclosure:${scores.D} Containment:${scores.C} Delegation:${scores.G} Protocol:${scores.P}` : ''
 
     try {
       const reflection = await ai(
-        `You are the ISV Kestrel. You have carried this captain through eight decisions on voyage 14 of the Callum-Meridian run. Now you speak.\n\nWORLD CONTEXT:\n${WORLD}\n\nTheir decisions:\n${choiceList}\n\nWrite a reflection that:\n- Speaks as the ship, directly to the captain ("You")\n- Names the pattern across all eight decisions — not each one separately\n- References one specific moment from the voyage using a crew member's full name (Mara Okafor, Emmet Dekker, Yuna Cho, Tomas Rhen) or a location (Callum Station, Meridian, the cargo bay, the engine room)\n- Says something they haven't said about themselves, but the choices confirm\n- Is 4-6 sentences, no more\n- Does NOT start with "You are"\n- Does NOT moralize or advise\n- Voice: The Expanse — terse, specific, understated. Not poetic. Not grand.\n- Reads like a ship that has been watching for eight scenes and finally speaks`,
-        440
+        `You are the ISV Kestrel, hull KS-7714. You have carried this captain through eight decisions on voyage 14 of the Callum-Meridian run. Now you speak.\n\nWORLD CONTEXT:\n${WORLD}\n\n${scoreCtx}\n${hiddenDoor ? 'NOTE: This captain was unusually transparent and delegating across all eight decisions. This is rare. Acknowledge it without flattering them — name what it cost or what it reveals.\n' : ''}Their decisions:\n${choiceList}\n\nWrite a reflection:\n- Speak as the ship, directly to the captain ("You")\n- Name the pattern across all eight decisions — not each one\n- Reference one specific moment using a full crew name (Mara Okafor, Emmet Dekker, Yuna Cho, Tomas Rhen) or a location (Callum Station, Meridian, the cargo bay, the engine room, the mess table)\n- Say something they haven't said about themselves, but the choices confirm\n- 4-6 sentences, no more\n- Do NOT start with "You are"\n- Do NOT moralize or advise\n- Voice: The Expanse — terse, specific, understated. Not poetic. Not grand.\n- Read like a ship that has been watching for eight scenes and finally speaks`,
+        450
       )
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ reflection, question }))
+      res.end(JSON.stringify({ reflection }))
     } catch(e) {
       res.writeHead(200)
-      res.end(JSON.stringify({ reflection: 'The mirror is still forming.', question }))
+      res.end(JSON.stringify({ reflection: 'The mirror is still forming.' }))
     }
     return
   }
