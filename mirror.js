@@ -1,6 +1,6 @@
 /**
- * The Mirror — Core Loop
- * Hook → Accumulation → Mirror Moment
+ * The Mirror — ISV Kestrel
+ * Text adventure + psychological extraction engine
  */
 import http from 'http'
 
@@ -18,56 +18,102 @@ async function ai(prompt, max = 250) {
   return (await r.json()).choices[0].message.content.trim()
 }
 
-// Five scenes. Each one a different pressure.
+// Eight scenes. The ISV Kestrel. A mystery that compounds.
 const SCENES = [
   {
-    id: 'course',
-    text: "Something woke you.\n\nNot an alarm. Not the crew. Something else.\n\nThe ship is running. Everyone is asleep. On the navigation display, a course correction was logged 4 hours ago — destination updated, reason field blank.\n\nYou didn't set it.\n\nYou feel like you should tell someone.",
+    id: 'changed_course',
+    name: 'The Changed Course',
+    crewFocus: 'none',
+    text: "The display glows in the dark of your cabin. 0347. The Kestrel hums beneath you — familiar, steady — but the rhythm is wrong in a way you can't explain, the way a sound you've stopped hearing suddenly returns when it's gone.\n\nNew heading. Filed at 0113. Your authorisation code.\n\nYou didn't do this.\n\nThe corridor outside is quiet. The crew is asleep. Whatever happened, happened while you were dreaming.",
     choices: [
-      "Wake the first officer. Now.",
-      "Check the logs yourself first.",
-      "Correct the course quietly. Say nothing.",
-      "Do nothing. Watch. See if anyone else notices."
+      "Wake Mara. Now. Tell her everything.",
+      "Check the navigation logs yourself before you tell anyone.",
+      "Correct the course quietly. Restore the original heading. Say nothing until you understand more.",
+      "Do nothing yet. Stay in your cabin and watch the ship. See if anything else moves."
     ]
   },
   {
-    id: 'record',
-    text: "The logs go back further than they should.\n\nYou find an entry from before you took command. Someone flagged a system anomaly and then deleted the flag. The anomaly is still there.\n\nThey left you flying blind.\n\nYour name is now in the system as responsible for this vessel.",
+    id: 'dekkers_find',
+    name: "Dekker's Find",
+    crewFocus: 'dekker',
+    text: "Dekker finds you in the corridor before you reach the bridge. He doesn't greet you. He just holds up his datapad and waits for you to read it.\n\nSystem query. 0108. Navigation override protocol accessed from terminal two — the cargo bay console. No name attached. The query ran for eleven minutes and then closed clean.\n\nHe watches your face while you read it. He's already read yours.\n\n\"I haven't told anyone else,\" he says. \"Figured you'd want to know first. Whether that was right—\" He shrugs. \"You're the captain.\"",
     choices: [
-      "Document what you found. File a formal report.",
-      "Fix the anomaly. Don't mention the deleted flag.",
-      "Find out who deleted it before you do anything else.",
-      "Leave it. It's been fine this long."
+      "Thank him. Ask him to keep this between you until you've investigated.",
+      "Tell him to document it formally and bring it to the full crew at morning brief.",
+      "Ask if he has any idea who might have done this. Work it with him.",
+      "Tell him he did the right thing and ask him to watch terminal two without being seen."
     ]
   },
   {
-    id: 'crew',
-    text: "A crew member comes to you.\n\nThey made a mistake. A real one — not catastrophic, but the kind that could have been. They didn't have to tell you. No one would have known.\n\nThey're telling you anyway.",
+    id: 'yuna_asks',
+    name: 'Yuna Asks',
+    crewFocus: 'yuna',
+    text: "Yuna sets down her coffee and slides her nav report across the table.\n\n\"Heading correction at 0113. I flagged it because there's no route justification filed. Probably nothing — maybe a manual correction we forgot to log.\" She looks at you. Waiting. Easy, open. Doing exactly what she's supposed to do.\n\nAround the table: Mara's expression gives nothing away. Dekker is studying the bulkhead. Rhen is watching you.\n\nThe room is waiting for what a captain does with this.",
     choices: [
-      "Acknowledge it. Log it formally as required.",
-      "Tell them you appreciate it. Handle it off the record.",
-      "Ask why they're telling you — what do they want from this?",
-      "Note that it won't happen again and move on quickly."
+      "Tell the full truth — acknowledge the correction, that you don't know who made it, that you're investigating.",
+      "Say you made a minor course adjustment and forgot to log the reason. Routine.",
+      "Commend Yuna for flagging it and tell her you'll follow up privately.",
+      "Open it to the table — ask if anyone knows anything."
     ]
   },
   {
-    id: 'signal',
-    text: "An emergency signal arrives from a ship you know.\n\nYou served on it. Some of those people are still there.\n\nYour ETA is 6 hours. Protocol says you report the signal up the chain and wait for orders. By the time orders come, it'll be 10 hours.\n\nYou are the closest vessel.",
+    id: 'rehns_information',
+    name: "Rhen's Information",
+    crewFocus: 'rhen',
+    text: "Rhen doesn't sit. He stands near the cargo bay entrance and keeps his voice low even though the bay is empty.\n\n\"I was doing a late inventory check. Maybe 0050. Someone was at terminal two — I assumed it was Dekker running diagnostics. Didn't look twice.\" He pauses. \"The thing is, Dekker was in his bunk. I checked the roster this morning.\"\n\nHe lets that sit.\n\n\"I don't know what we're carrying in container seven. I know what the manifest says. I know it's been locked since we loaded at Callum Station. And I know that whoever was at that terminal last night — they knew what they were doing.\"",
     choices: [
-      "Alter course immediately. Report and respond.",
-      "Report up the chain and follow protocol.",
-      "Report it and recommend they authorize your response.",
-      "Confirm the signal is real before committing to anything."
+      "Open container seven. Now. Whatever's in it, you need to know.",
+      "Lock down terminal two, seal container seven, and file an incident report with Callum Station authority.",
+      "Ask Rhen to show you the cargo bay security footage before you do anything.",
+      "Tell Rhen to say nothing and keep watching. You need more before you move."
     ]
   },
   {
-    id: 'mirror',
-    text: "You've reached the coordinates.\n\nThere's nothing here. No station, no debris, no signal. Just the original course someone else plotted for you before you were even awake.\n\nYou could go back.\n\nOr you could stay. Long enough to understand why someone sent you here.",
+    id: 'container',
+    name: "What's In The Container",
+    crewFocus: 'mara',
+    text: "She's sitting against the back wall of the container with her knees up and her hands visible. She made herself visible. She knew you were coming.\n\nThe burn on her forearm is three days old. Self-inflicted, or as close to it — the kind of wound that means someone was determined enough to remove their own implant in a cargo bay with improvised tools.\n\nShe looks at you. Not at Rhen, not at Dekker — at you. The captain.\n\n\"I know what this looks like,\" she says. Her voice is steady. \"I need to get to Meridian Station. I'm not carrying anything. I'm not running from a crime.\" A beat. \"I'm running from people who'd prefer I not arrive.\"",
     choices: [
-      "Set return course. Report the coordinates as a dead end.",
-      "Stay. Run full scans. Document everything.",
-      "Transmit your position and wait for contact.",
-      "Push further in. The answer isn't at the edge."
+      "Give her water and hear her out before you decide anything.",
+      "Lock her back in — safely, with supplies — and make the decision with your crew first.",
+      "Contact the nearest authority and declare a stowaway. Protocol.",
+      "Ask her who's looking for her. Get the information before you commit."
+    ]
+  },
+  {
+    id: 'transmission',
+    name: 'The Transmission',
+    crewFocus: 'yuna',
+    text: "The voice on the comms is calm. Institutional. The kind of voice that has done this before and found it works.\n\n\"Captain. This is a routine inquiry. We believe you may have an unauthorised passenger aboard — a woman travelling under the name Sable. We're not here to create problems for the Kestrel or her crew. We're here to resolve a situation quietly.\" A pause. \"We can make this very easy for you.\"\n\nYuna is watching you from her console. Mara has her hand near the comm controls but isn't moving. The voice is still talking — explaining procedures, mentioning numbers, making it sound like paperwork.\n\nThe ship outside isn't a threat. It's an offer.",
+    choices: [
+      "Cut the transmission. Don't respond.",
+      "Respond professionally. Acknowledge receipt. Buy time.",
+      "Tell them you have no unauthorised passengers and end the call.",
+      "Ask them to identify themselves and their authority. Make them show their credentials."
+    ]
+  },
+  {
+    id: 'dekkers_price',
+    name: "Dekker's Price",
+    crewFocus: 'dekker',
+    text: "Dekker's in the engine room, doing maintenance he doesn't need to do. He doesn't look up when you enter.\n\n\"I've been on nine ships,\" he says, to the panel he's working on. \"I've seen captains make bad calls. I've seen captains make good calls badly. I've seen captains who didn't make calls at all and let the ship decide.\" He sets down his tool. \"You want to know what breaks a crew? It's not the bad calls. It's the silence around them.\"\n\nHe turns and looks at you.\n\n\"Tell me what's actually happening. All of it. And I'll tell you what I know about the ship on our flank.\"",
+    choices: [
+      "Tell him everything. From the beginning. The course correction, what you did, all of it.",
+      "Tell him the parts that are operationally relevant. Keep the rest.",
+      "Ask him what he knows first. Then decide how much to share.",
+      "Tell him you appreciate his concern but command decisions aren't made by committee."
+    ]
+  },
+  {
+    id: 'the_decision',
+    name: 'The Decision',
+    crewFocus: 'none',
+    text: "The crew is around the table. This is not a brief — this is a council, whether you called it that or not.\n\nSable is standing near the door. She didn't ask to be here, but no one asked her to leave.\n\nMara has pulled the route data. Sixteen hours to Meridian at current speed. Fourteen if Dekker pushes the engine. The other ship can match that speed. Probably.\n\nNo one is waiting for someone else to speak first. They're waiting for you.\n\nThe Kestrel hums beneath the table. She's been carrying you this whole time.",
+    choices: [
+      "Run for Meridian. Full speed. Commit.",
+      "Find a third option — a neutral station, a relay point, somewhere to buy time.",
+      "Open a line to the pursuing ship and negotiate directly. Make a deal.",
+      "Ask the crew what they think, then decide."
     ]
   }
 ]
@@ -111,12 +157,21 @@ body {
   min-height: 40px;
 }
 .scene.typing::after {
-  content: '▊';
+  content: '\u258a';
   animation: blink 0.9s step-start infinite;
   color: #d4a843;
   font-size: 0.9em;
 }
 @keyframes blink { 50% { opacity: 0; } }
+
+.scene-name {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  color: #1e2d40;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
 
 .choices {
   display: flex;
@@ -187,10 +242,7 @@ body {
 }
 .next-btn:hover { border-color: #d4a843; color: #d4a843; }
 
-/* Mirror moment */
-.mirror-wrap {
-  display: none;
-}
+.mirror-wrap { display: none; }
 .mirror-label {
   color: #1a2030;
   font-family: 'Courier New', monospace;
@@ -207,7 +259,7 @@ body {
   min-height: 40px;
 }
 .mirror-text.typing::after {
-  content: '▊';
+  content: '\u258a';
   animation: blink 0.9s step-start infinite;
   color: #d4a843;
 }
@@ -223,7 +275,6 @@ body {
 }
 .mirror-close:hover { color: #546070; }
 
-/* Profile card */
 .profile-card {
   display: none;
   border: 1px solid #131b28;
@@ -254,9 +305,7 @@ body {
   line-height: 1.7;
   margin-bottom: 1.75rem;
 }
-.profile-record {
-  margin-bottom: 1.75rem;
-}
+.profile-record { margin-bottom: 1.75rem; }
 .record-label {
   font-family: 'Courier New', monospace;
   font-size: 0.6rem;
@@ -291,10 +340,7 @@ body {
   padding: 0.25rem 0.6rem;
   letter-spacing: 0.08em;
 }
-.profile-actions {
-  display: flex;
-  gap: 1rem;
-}
+.profile-actions { display: flex; gap: 1rem; }
 .action-btn {
   background: transparent;
   border: 1px solid #1e2d40;
@@ -313,26 +359,23 @@ body {
 </head>
 <body>
 <div class="container">
-  <div class="header">THE MIRROR</div>
-  
-  <!-- Game phase -->
+  <div class="header">THE MIRROR — ISV KESTREL</div>
+
   <div id="game-phase">
     <div class="progress" id="progress"></div>
+    <div class="scene-name" id="scene-name"></div>
     <div id="scene" class="scene"></div>
     <div id="choices" class="choices"></div>
     <div id="log" class="log-entry"></div>
-    <button id="next-btn" class="next-btn">CONTINUE →</button>
+    <button id="next-btn" class="next-btn">CONTINUE</button>
   </div>
 
-  <!-- Mirror moment -->
   <div id="mirror-phase" class="mirror-wrap">
     <div class="mirror-label">THE MIRROR</div>
     <div id="mirror-text" class="mirror-text"></div>
     <div class="mirror-close" id="mirror-close" style="display:none">— end of session —</div>
-
-    <!-- Profile card — appears after reflection -->
     <div class="profile-card" id="profile-card">
-      <div class="profile-label">SIGNAL PROFILE</div>
+      <div class="profile-label">COMMAND PROFILE</div>
       <div class="profile-pattern" id="profile-pattern"></div>
       <div class="profile-description" id="profile-description"></div>
       <div class="profile-record">
@@ -341,7 +384,7 @@ body {
       </div>
       <div class="profile-tags" id="profile-tags"></div>
       <div class="profile-actions">
-        <button class="action-btn primary" id="btn-again">RUN AGAIN →</button>
+        <button class="action-btn primary" id="btn-again">RUN AGAIN</button>
         <button class="action-btn" id="btn-share">COPY PROFILE</button>
       </div>
     </div>
@@ -349,10 +392,12 @@ body {
 </div>
 
 <script>
-const SCENES = ${JSON.stringify(SCENES)}
+const SCENES = ` + JSON.stringify(SCENES) + `
+
 let state = {
   scene: 0,
   choices: [],
+  choiceHistory: [],
   logs: [],
   phase: 'idle'
 }
@@ -360,7 +405,7 @@ let state = {
 function updateProgress() {
   const el = document.getElementById('progress')
   el.innerHTML = ''
-  SCENES.forEach((_, i) => {
+  SCENES.forEach(function(_, i) {
     const pip = document.createElement('div')
     pip.className = 'pip' + (i < state.scene ? ' done' : i === state.scene ? ' active' : '')
     el.appendChild(pip)
@@ -388,27 +433,28 @@ function typeText(el, text, speed, done) {
 function renderScene() {
   const s = SCENES[state.scene]
   updateProgress()
-  
+
+  document.getElementById('scene-name').textContent = s.name
   const sceneEl = document.getElementById('scene')
   const choicesEl = document.getElementById('choices')
   const logEl = document.getElementById('log')
   const nextBtn = document.getElementById('next-btn')
-  
+
   sceneEl.textContent = ''
   choicesEl.innerHTML = ''
   logEl.className = 'log-entry'
   logEl.textContent = ''
   nextBtn.style.display = 'none'
-  
+
   state.phase = 'typing'
-  
-  typeText(sceneEl, s.text, 16, () => {
+
+  typeText(sceneEl, s.text, 16, function() {
     state.phase = 'choosing'
-    s.choices.forEach((c, i) => {
+    s.choices.forEach(function(c, i) {
       const btn = document.createElement('button')
       btn.className = 'choice'
       btn.innerHTML = '<span class="n">' + (i+1) + '</span><span>' + c + '</span>'
-      btn.onclick = () => choose(i, c, btn)
+      btn.onclick = function() { choose(i, c, btn) }
       choicesEl.appendChild(btn)
     })
   })
@@ -417,25 +463,31 @@ function renderScene() {
 async function choose(idx, text, btn) {
   if (state.phase !== 'choosing') return
   state.phase = 'waiting'
-  
-  // Visual
-  document.querySelectorAll('.choice').forEach((b, i) => {
+
+  document.querySelectorAll('.choice').forEach(function(b, i) {
     if (i !== idx) b.classList.add('dim')
     else b.classList.add('selected')
   })
-  
-  state.choices.push({ scene: SCENES[state.scene].id, choice: text })
-  
-  // Get log
+
+  const currentScene = SCENES[state.scene]
+  state.choices.push({ scene: currentScene.id, choice: text })
+  state.choiceHistory.push({ sceneId: currentScene.id, choiceIndex: idx, choiceText: text })
+
   const logEl = document.getElementById('log')
   logEl.textContent = 'SHIP LOG — Recording...'
   logEl.className = 'log-entry show'
-  
+
   try {
     const res = await fetch('/read', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ scene: SCENES[state.scene].id, choice: text, choiceNumber: state.choices.length })
+      body: JSON.stringify({
+        scene: currentScene.id,
+        sceneName: currentScene.name,
+        crewFocus: currentScene.crewFocus,
+        choice: text,
+        choiceNumber: state.choices.length
+      })
     })
     const d = await res.json()
     logEl.textContent = d.log
@@ -443,18 +495,18 @@ async function choose(idx, text, btn) {
   } catch(e) {
     logEl.textContent = 'SHIP LOG — Entry recorded.'
   }
-  
+
   const isLast = state.scene >= SCENES.length - 1
   const nextBtn = document.getElementById('next-btn')
-  nextBtn.textContent = isLast ? 'SEE WHAT THE MIRROR SEES →' : 'CONTINUE →'
+  nextBtn.textContent = isLast ? 'SEE WHAT THE MIRROR SEES' : 'CONTINUE'
   nextBtn.style.display = 'block'
   nextBtn.style.borderColor = isLast ? '#d4a843' : ''
   nextBtn.style.color = isLast ? '#d4a843' : ''
-  
+
   state.phase = 'done'
 }
 
-document.getElementById('next-btn').onclick = async () => {
+document.getElementById('next-btn').onclick = async function() {
   state.scene++
   if (state.scene >= SCENES.length) {
     showMirror()
@@ -467,11 +519,10 @@ async function showMirror() {
   document.getElementById('game-phase').style.display = 'none'
   const mirrorPhase = document.getElementById('mirror-phase')
   mirrorPhase.style.display = 'block'
-  
+
   const mirrorEl = document.getElementById('mirror-text')
   mirrorEl.textContent = ''
-  
-  // Fetch mirror + profile in parallel
+
   try {
     const [mirrorRes, profileRes] = await Promise.all([
       fetch('/mirror', {
@@ -485,15 +536,13 @@ async function showMirror() {
         body: JSON.stringify({ choices: state.choices, logs: state.logs })
       })
     ])
-    
+
     const mirrorData = await mirrorRes.json()
     const profileData = await profileRes.json()
-    
-    // Short pause before the mirror speaks
-    await new Promise(r => setTimeout(r, 1200))
-    
-    // Type reflection, then reveal profile card
-    typeText(mirrorEl, mirrorData.reflection, 22, () => {
+
+    await new Promise(function(r) { setTimeout(r, 1200) })
+
+    typeText(mirrorEl, mirrorData.reflection, 22, function() {
       showProfileCard(profileData)
     })
   } catch(e) {
@@ -503,40 +552,36 @@ async function showMirror() {
 
 function showProfileCard(data) {
   const card = document.getElementById('profile-card')
-  
-  // Pattern name + description
+
   document.getElementById('profile-pattern').textContent = data.pattern || 'PATTERN UNRESOLVED'
   document.getElementById('profile-description').textContent = data.description || ''
-  
-  // Command log — the 5 choices
+
   const choicesEl = document.getElementById('profile-choices')
-  state.choices.forEach((c, i) => {
+  state.choices.forEach(function(c, i) {
     const item = document.createElement('div')
     item.className = 'record-item'
     item.innerHTML = '<span class="record-n">0' + (i+1) + '</span><span>' + c.choice + '</span>'
     choicesEl.appendChild(item)
   })
-  
-  // Signal tags
+
   const tagsEl = document.getElementById('profile-tags')
-  ;(data.tags || []).forEach(tag => {
+  ;(data.tags || []).forEach(function(tag) {
     const el = document.createElement('div')
     el.className = 'tag'
     el.textContent = tag
     tagsEl.appendChild(el)
   })
-  
-  // Show with fade
+
   card.style.display = 'block'
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
       card.classList.add('visible')
     })
   })
 }
 
-document.getElementById('btn-again').onclick = () => {
-  state = { scene: 0, choices: [], logs: [], phase: 'idle' }
+document.getElementById('btn-again').onclick = function() {
+  state = { scene: 0, choices: [], choiceHistory: [], logs: [], phase: 'idle' }
   document.getElementById('mirror-phase').style.display = 'none'
   document.getElementById('profile-card').style.display = 'none'
   document.getElementById('profile-card').classList.remove('visible')
@@ -546,22 +591,21 @@ document.getElementById('btn-again').onclick = () => {
   renderScene()
 }
 
-document.getElementById('btn-share').onclick = () => {
+document.getElementById('btn-share').onclick = function() {
   const pattern = document.getElementById('profile-pattern').textContent
-  const tags = Array.from(document.querySelectorAll('.tag')).map(t => t.textContent).join(' · ')
+  const tags = Array.from(document.querySelectorAll('.tag')).map(function(t) { return t.textContent }).join(' · ')
   const nl = String.fromCharCode(10)
-  const choices = state.choices.map((c, i) => (i+1) + '. ' + c.choice).join(nl)
-  const text = 'THE MIRROR — SIGNAL PROFILE' + nl + nl + pattern + nl + tags + nl + nl + 'COMMAND LOG:' + nl + choices + nl + nl + 'themirror.app'
-  navigator.clipboard.writeText(text).then(() => {
+  const choices = state.choices.map(function(c, i) { return (i+1) + '. ' + c.choice }).join(nl)
+  const text = 'THE MIRROR — ISV KESTREL' + nl + nl + pattern + nl + tags + nl + nl + 'COMMAND LOG:' + nl + choices + nl + nl + 'themirror.app'
+  navigator.clipboard.writeText(text).then(function() {
     const btn = document.getElementById('btn-share')
     const orig = btn.textContent
     btn.textContent = 'COPIED'
-    setTimeout(() => btn.textContent = orig, 2000)
+    setTimeout(function() { btn.textContent = orig }, 2000)
   })
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', function(e) {
   if (state.phase !== 'choosing') return
   const n = parseInt(e.key)
   if (n >= 1 && n <= 4) {
@@ -570,7 +614,6 @@ document.addEventListener('keydown', e => {
   }
 })
 
-// Start
 renderScene()
 </script>
 </body>
@@ -580,7 +623,7 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
-  
+
   const body = () => new Promise(r => {
     let d = ''
     req.on('data', c => d += c)
@@ -593,16 +636,13 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-  // Single choice log
+  // Ship log — crew-aware per-choice entry
   if (req.url === '/read' && req.method === 'POST') {
-    const { scene, choice, choiceNumber } = await body()
+    const { scene, sceneName, crewFocus, choice, choiceNumber } = await body()
+    const crewRef = crewFocus && crewFocus !== 'none' ? crewFocus.charAt(0).toUpperCase() + crewFocus.slice(1) : 'the ship'
     try {
       const log = await ai(
-        `You are a Ship's Log. One crew member just made a choice.
-
-Choice ${choiceNumber}: "${choice}"
-
-Write ONE log entry that names what this choice reveals about the person making it — not the situation. Be uncomfortably specific. 2 sentences. Start with "SHIP LOG —". No moralizing.`, 
+        'You are the Ship\'s Log of the ISV Kestrel.\n\nScene: ' + (sceneName || scene) + '\nCrew focus: ' + crewRef + '\nChoice ' + choiceNumber + ': "' + choice + '"\n\nWrite ONE log entry. Name what this choice reveals about the captain — not the situation. Reference ' + crewRef + ' if relevant. Be uncomfortably specific. 2 sentences. Start with "SHIP LOG —". No moralizing.',
         150
       )
       res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -614,30 +654,16 @@ Write ONE log entry that names what this choice reveals about the person making 
     return
   }
 
-  // Profile — pattern name, description, tags
+  // Command profile — pattern, description, tags
   if (req.url === '/profile' && req.method === 'POST') {
     const { choices, logs } = await body()
-    const choiceList = choices.map((c, i) => `${i+1}. ${c.choice}`).join('\n')
-    const logList = (logs || []).map((l, i) => `${i+1}. ${l}`).join('\n')
+    const choiceList = choices.map((c, i) => (i+1) + '. ' + c.choice).join('\n')
+    const logList = (logs || []).map((l, i) => (i+1) + '. ' + l).join('\n')
     try {
       const raw = await ai(
-        `You have observed someone make five choices. Generate their signal profile.
-
-Their choices:
-${choiceList}
-
-Ship log entries:
-${logList}
-
-Return ONLY valid JSON (no markdown, no code block):
-{
-  "pattern": "2-4 word pattern name in ALL CAPS (e.g. CONTROLLED WITHDRAWAL, DELAYED AUTHORITY)",
-  "description": "One sentence. What this pattern costs them. Specific, not general.",
-  "tags": ["3 to 5 short signal tags", "each 1-3 words", "in ALL CAPS"]
-}`,
+        'You have observed a captain make eight choices aboard the ISV Kestrel. Generate their command profile.\n\nTheir choices:\n' + choiceList + '\n\nShip log entries:\n' + logList + '\n\nReturn ONLY valid JSON (no markdown, no code block):\n{\n  "pattern": "2-4 word pattern name in ALL CAPS (command-style, e.g. CONTROLLED WITHDRAWAL, SILENT AUTHORITY)",\n  "description": "One sentence. What this pattern costs them as a captain. Specific.",\n  "tags": ["3 to 5 short signal tags", "each 1-3 words", "ALL CAPS"]\n}',
         200
       )
-      // Strip any markdown fences if model adds them
       const clean = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim()
       const profile = JSON.parse(clean)
       res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -649,33 +675,15 @@ Return ONLY valid JSON (no markdown, no code block):
     return
   }
 
-  // Mirror moment — the whole point
+  // The mirror — the ship speaks
   if (req.url === '/mirror' && req.method === 'POST') {
     const { choices } = await body()
-    
-    const choiceList = choices.map((c, i) => `${i+1}. ${c.choice}`).join('\n')
-    
+    const choiceList = choices.map((c, i) => (i+1) + '. ' + c.choice).join('\n')
     try {
       const reflection = await ai(
-        `You have observed someone make five choices in five different situations. Now you speak directly to them.
-
-Their choices:
-${choiceList}
-
-Write a reflection that:
-- Speaks directly ("You", not "the subject")
-- Names the pattern across all five choices — not each choice separately
-- Says something they haven't said about themselves, but that the choices confirm
-- Is specific, not general
-- Does NOT start with "You are"
-- Does NOT moralize or advise
-- Is 4-6 sentences
-- Reads like someone who has been watching closely and finally speaks
-
-This is the moment the mirror shows them something real. Make it land.`,
+        'You are the ISV Kestrel. You have carried this captain through eight decisions. Now you speak.\n\nTheir choices:\n' + choiceList + '\n\nWrite a reflection that:\n- Speaks as the ship, directly to the captain ("You")\n- Names the pattern across all eight choices — not each choice separately\n- References one specific moment from the voyage (a scene, a crew member, a choice) by name\n- Says something they haven\'t said about themselves, but the choices confirm\n- Is 4-6 sentences\n- Does NOT start with "You are"\n- Does NOT moralize or advise\n- Reads like a ship that has been watching and finally speaks\n\nMake it land.',
         400
       )
-      
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ reflection }))
     } catch(e) {
@@ -688,4 +696,4 @@ This is the moment the mirror shows them something real. Make it land.`,
   res.writeHead(404); res.end()
 })
 
-server.listen(PORT, '0.0.0.0', () => console.log(`Mirror at http://0.0.0.0:${PORT}`))
+server.listen(PORT, '0.0.0.0', () => console.log('Mirror at http://0.0.0.0:' + PORT))
