@@ -685,4 +685,5 @@ This is the moment the mirror shows them something real. Make it land.`,
   res.writeHead(404); res.end()
 })
 
-server.listen(3003, () => console.log('Mirror at http://localhost:3003'))
+const PORT = process.env.PORT || 3003
+server.listen(PORT, () => console.log(`Mirror at http://localhost:${PORT}`))
