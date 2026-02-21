@@ -7,6 +7,8 @@ import http from 'http'
 const KEY = process.env.OPENROUTER_API_KEY
 if (!KEY) throw new Error('OPENROUTER_API_KEY environment variable is required')
 
+const PORT = parseInt(process.env.PORT || '3003', 10)
+
 async function ai(prompt, max = 250) {
   const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -685,5 +687,4 @@ This is the moment the mirror shows them something real. Make it land.`,
   res.writeHead(404); res.end()
 })
 
-const PORT = process.env.PORT || 3003
-server.listen(PORT, () => console.log(`Mirror at http://localhost:${PORT}`))
+server.listen(PORT, '0.0.0.0', () => console.log(`Mirror at http://0.0.0.0:${PORT}`))
